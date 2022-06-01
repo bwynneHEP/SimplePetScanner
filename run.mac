@@ -1,0 +1,46 @@
+# Initialize G4
+/control/verbose 2
+/control/saveHistory
+#
+# Set up magnetic field
+/globalField/verbose 1
+/globalField/setValue 0 0 0 tesla
+#
+# Set up beam
+/gun/particle e-
+/gun/energy 300 MeV
+#
+# Initialise physics
+/run/beamOn 0
+#
+##################
+# 
+# First, you need to run the experiment (choosing number of events):
+#     /run/beamOn 20
+#
+# Re-run a few times to see how random variations affect the result:
+#     /run/beamOn 20
+#
+# Now you can try changing things
+# Here are some suggestions for things to try:
+#
+# Change the viewpoint
+#     # x-section
+#     /vis/viewer/set/viewpointThetaPhi 90 180
+#     # from the corner
+#     /vis/viewer/set/viewpointThetaPhi 120 150
+#     # zoom
+#     /vis/viewer/zoom 1.4
+#
+# Turn on the magnetic field
+#     /globalField/setValue 0.1 0 0 tesla
+#
+# Shoot a different particle beam (started with 300 MeV e-):
+#     /gun/particle e-
+#     /gun/energy 200 keV
+#
+# Turn off a physics process (electron Bremsstrahlung, try /process/list to see all):
+#     /process/inactivate eBrem
+#
+# Don't forget to re-run the experiment after the changes!
+#     /run/beamOn 20
