@@ -3,11 +3,12 @@
 
 #include "G4VSensitiveDetector.hh"
 
+#include <map>
 
 class EnergyCounter : public G4VSensitiveDetector
 {
   public:
-    EnergyCounter( const G4String& name, const G4int id );
+    EnergyCounter( const G4String& name );
     ~EnergyCounter() override;
 
     void Initialize( G4HCofThisEvent* hitCollection ) override;
@@ -15,8 +16,7 @@ class EnergyCounter : public G4VSensitiveDetector
     void EndOfEvent( G4HCofThisEvent* hitCollection ) override;
 
   private:
-    G4double m_totalEnergy;
-    G4int m_ID;
+    std::map< G4int, G4double > m_totalEnergyMap;
 };
 
 #endif

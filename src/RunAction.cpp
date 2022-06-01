@@ -4,24 +4,18 @@
 
 RunAction::RunAction() : G4UserRunAction()
 {
-  // Set number of layers
-  G4int const layerNumber = 5;
+  // Set number of crystals
+  G4int const crystalNumber = 200;
 
   // Create analysis manager
   auto analysisManager = G4AnalysisManager::Instance();
 
-  // Create histogram of energy distribution
-  analysisManager->CreateH1( "LayerTotal", "Layer total energy", layerNumber, 0.5, 0.5 + float( layerNumber ) ); // id 0
-
-  // Render the histograms in a .ps file
-  analysisManager->SetH1Plotting( 0, true );
-
   // Add an ntuple for energy deposits (ntuple id 0)
   analysisManager->CreateNtuple( "Energy", "Deposited energy" );
   analysisManager->CreateNtupleDColumn( "Generated" );
-  for ( unsigned int layerIndex = 1; layerIndex <= layerNumber; ++layerIndex )
+  for ( unsigned int crystalIndex = 1; crystalIndex <= crystalNumber; ++crystalIndex )
   {
-    std::string columnName = "Layer" + std::to_string( layerIndex );
+    std::string columnName = "Layer" + std::to_string( crystalIndex );
     analysisManager->CreateNtupleDColumn( columnName );
   }
   analysisManager->FinishNtuple();

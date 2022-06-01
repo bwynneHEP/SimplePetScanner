@@ -24,16 +24,7 @@
 /vis/geometry/set/visibility World 0 true
 /vis/viewer/set/style surface
 /vis/geometry/set/colour World 0 0 0 1 0.3 # Blue, 30% opaque
-/vis/geometry/set/colour Absorber1 0 1 1 1 1.0 # White, 100% opaque
-/vis/geometry/set/colour Detector1 0 0 1 0.5 1.0 # Green, 100% opaque
-/vis/geometry/set/colour Absorber2 0 1 1 1 1.0 # White, 100% opaque
-/vis/geometry/set/colour Detector2 0 0 1 0.5 1.0 # Green, 100% opaque
-/vis/geometry/set/colour Absorber3 0 1 1 1 1.0 # White, 100% opaque
-/vis/geometry/set/colour Detector3 0 0 1 0.5 1.0 # Green, 100% opaque
-/vis/geometry/set/colour Absorber4 0 1 1 1 1.0 # White, 100% opaque
-/vis/geometry/set/colour Detector4 0 0 1 0.5 1.0 # Green, 100% opaque
-/vis/geometry/set/colour Absorber5 0 1 1 1 1.0 # White, 100% opaque
-/vis/geometry/set/colour Detector5 0 0 1 0.5 1.0 # Green, 100% opaque
+/vis/geometry/set/colour Detector 0 0 1 0.5 1.0 # Green, 100% opaque
 #
 # Draw smooth trajectories
 # Colour-coded by particle type

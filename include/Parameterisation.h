@@ -7,13 +7,13 @@
 class Parameterisation : public G4VPVParameterisation
 {
   public:
-    Parameterisation( G4double dx, G4double dy, G4double dz );
+    Parameterisation( G4int DetectorsPerRing );
     ~Parameterisation(){};
 
     void ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const override;
 
   private:
-    G4double m_dx, m_dy, m_dz;
+    G4int m_detectorsPerRing;
 };
 
 #endif

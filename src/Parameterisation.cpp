@@ -1,22 +1,31 @@
 #include "Parameterisation.h"
 
 #include "G4ThreeVector.hh"
+#include "G4RotationMatrix.hh"
 #include "G4SystemOfUnits.hh"
 
-Parameterisation::Parameterisation( G4double dx, G4double dy, G4double dz ) :
-  m_dx( dx ), m_dy( dy ), m_dz( dz )
+Parameterisation::Parameterisation( G4int DetectorsPerRing ) :
+  m_detectorsPerRing( DetectorsPerRing )
 {
 }
 
 void Parameterisation::ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
 {
-  G4double Xposition = ( copyNo % 5 ) * m_dx;
-  G4double Yposition = ( copyNo % 5 ) * m_dy;
-  G4double Zposition = ( copyNo % 5 ) * m_dz;
+  // Phi position is copyNo within ring
+  G4double deltaPhi = 360.0 * deg / G4double( m_detectorsPerRing );
+  G4double phi = deltaPhi * G4double( copyNo % m_detectorsPerRing );
 
-  if ( copyNo > 4 ) Xposition += 100 * cm;
+  // Z position is ring itself
+  G4int ring = floor( copyNo / m_detectorsPerRing );
+  G4double z = G4double( ring ) * 20.0 * cm; // hardcoded ring spacing for now
 
-  G4ThreeVector origin( Xposition, Yposition, Zposition );
-  physVol->SetTranslation( origin );
-  physVol->SetRotation( 0 );
+  // Set the translation
+  G4ThreeVector position;
+  position.setRhoPhiZ( 50.0 * cm, phi, z ); // hardcoded radius for now
+  physVol->SetTranslation( position );
+
+  // Set the rotation
+  G4RotationMatrix * rotation = new G4RotationMatrix();
+  rotation->rotateZ( -phi ); // this is slow for some reason
+  physVol->SetRotation( rotation );
 }

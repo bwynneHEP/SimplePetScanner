@@ -12,8 +12,8 @@ GeneratorAction::GeneratorAction() : G4VUserPrimaryGeneratorAction()
   // Default particle
   G4ParticleDefinition * particleDefinition = G4ParticleTable::GetParticleTable()->FindParticle( "e-" );
   m_particleGun->SetParticleDefinition( particleDefinition );
-  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, 0.0, -250.0*cm ) ); // right in the middle
-  m_particleGun->SetParticleMomentumDirection( G4ThreeVector( 0.0, 0.0, 1.0 ) ); // along z axis
+  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, 0.0, 140.0*cm ) ); // in the middle of the detector
+  m_particleGun->SetParticleMomentumDirection( G4ThreeVector( 1.0, 0.0, 0.0 ) ); // along x axis
   m_particleGun->SetParticleEnergy( 300.0*MeV );
 }
 
