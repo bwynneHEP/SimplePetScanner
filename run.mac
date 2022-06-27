@@ -1,6 +1,8 @@
 # Initialize G4
 /control/verbose 2
 /control/saveHistory
+/vis/ogl/set/displayListLimit 500000
+/vis/viewer/zoom 5
 #
 # Set up magnetic field
 /globalField/verbose 1

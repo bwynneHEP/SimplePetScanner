@@ -1,15 +1,16 @@
-#include "Parameterisation.h"
+#include "BasicParameterisation.h"
 
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4Transform3D.hh"
 
-Parameterisation::Parameterisation( G4int DetectorsPerRing ) :
+BasicParameterisation::BasicParameterisation( G4int DetectorsPerRing ) :
   m_detectorsPerRing( DetectorsPerRing )
 {
 }
 
-void Parameterisation::ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
+void BasicParameterisation::ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
 {
   // Phi position is copyNo within ring
   G4double deltaPhi = 360.0 * deg / G4double( m_detectorsPerRing );

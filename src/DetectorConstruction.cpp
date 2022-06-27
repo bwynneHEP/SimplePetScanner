@@ -1,20 +1,17 @@
 #include "DetectorConstruction.h"
 #include "EnergyCounter.h"
-#include "Parameterisation.h"
+#include "BasicDetector.h"
+#include "SiemensQuadraDetector.h"
 
 #include "G4Material.hh"
-#include "G4NistManager.hh"
 #include "G4Box.hh"
+#include "G4NistManager.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4AutoDelete.hh"
 #include "G4GeometryManager.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4SDManager.hh"
-#include "G4PVParameterised.hh"
-
-// Set number of detector layers
-G4int const nLayers = 5;
 
 G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
@@ -35,38 +32,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
 
-  G4bool isotopes = false;
-
-  // LSO
-  /*
-  G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );
-  G4Element* Si = nistManager->FindOrBuildElement( "Si", isotopes );
-  G4Element* Lu = nistManager->FindOrBuildElement( "Lu", isotopes );
-
-  G4Material* LSO = new G4Material( "Lu2SiO5", 7.4*g/cm3, 3 );
-  LSO->AddElement( Lu, 2 );
-  LSO->AddElement( Si, 1 );
-  LSO->AddElement( O , 5 );
-  */
-
-  // LYSO
-  G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );
-  G4Element* Si = nistManager->FindOrBuildElement( "Si", isotopes );
-  G4Element* Lu = nistManager->FindOrBuildElement( "Lu", isotopes );
-  G4Element* Ce = nistManager->FindOrBuildElement( "Ce", isotopes );
-  G4Element* Y  = nistManager->FindOrBuildElement( "Y" , isotopes );
-
-  G4Material* LYSO = new G4Material( "LYSO", 7.1*g/cm3, 5 );
-  LYSO->AddElement( Lu, 71.43 * perCent );
-  LYSO->AddElement( Y,  4.03  * perCent );
-  LYSO->AddElement( Si, 6.37  * perCent );
-  LYSO->AddElement( O,  18.14 * perCent );
-  LYSO->AddElement( Ce, 0.02  * perCent );
-
   // Definitions of Solids, Logical Volumes, Physical Volumes
-  G4double detectorWidth = 5.0*cm;
-  G4double detectorLength = 10.0*cm;
-  G4double worldLength = 250.0*cm;
+  G4double worldLength = 5.0*m;
 
   // WORLD: Solid (cube)
   G4GeometryManager::GetInstance()->SetWorldMaximumExtent( worldLength );
@@ -94,26 +61,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  0,               // copy number
                  true );          // checking overlaps
 
-  // DETECTOR: Single crystal (square prism)
-  G4Box* detectorS = new G4Box(
-                 "Detector",        // its name
-                 detectorLength,
-                 detectorWidth,
-                 detectorWidth );
-
-  // DETECTOR: Logical volume (how to treat it)
-  G4LogicalVolume* detectorLV = new G4LogicalVolume(
-                 detectorS,         // its solid
-                 LYSO,              // its material
-                 "Detector",        // its name
-                 0, 0, 0 );         // Modifiers we don't use
-
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
-  G4VPVParameterisation* detectorParam = new Parameterisation( 20 );
-  G4VPhysicalVolume* detectorPV = new G4PVParameterised( "Detector", detectorLV, worldLV, kUndefined, 200, detectorParam );
+  //G4VPhysicalVolume* detectorPV = BasicDetector::Construct( "Detector", worldLV );
+  G4VPhysicalVolume* detectorPV = SiemensQuadraDetector::Construct( "Detector", worldLV );
 
   // DETECTOR: Warn if there's an overlap
-  if ( detectorPV->CheckOverlaps() ) std::cerr << "WARNING: your simulated objects overlap" << std::endl;
+  //if ( detectorPV->CheckOverlaps() ) std::cerr << "WARNING: your simulated objects overlap" << std::endl; // this is slow
 
   // Always return the physical world
   return worldPV;
@@ -131,7 +84,7 @@ void DetectorConstruction::ConstructSDandField()
   // Register the field messenger for deleting
   G4AutoDelete::Register( m_magneticFieldMessenger );
 
-  auto detector = new EnergyCounter( "Detector" );
+  auto detector = new EnergyCounter( "Detector1_1" );
   G4SDManager::GetSDMpointer()->AddNewDetector( detector );
   this->SetSensitiveDetector( "Detector", detector );
 }

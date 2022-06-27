@@ -1,5 +1,6 @@
-Basic G4 simulation for a PET scanner.
+Basic Geant4 simulation for a PET scanner.
 
+Requires Geant4 installation: https://geant4.web.cern.ch/
 Use G4 parameterised solid to add an arbitrary number of detectors
 
 Includes code from https://github.com/katarinazatkova/PET-material-1
