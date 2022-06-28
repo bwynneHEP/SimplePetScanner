@@ -13,7 +13,7 @@
 /gun/energy 300 MeV
 #
 # Initialise physics
-/run/beamOn 0
+/run/beamOn 10
 #
 ##################
 # 
@@ -36,13 +36,6 @@
 #
 # Turn on the magnetic field
 #     /globalField/setValue 0.1 0 0 tesla
-#
-# Shoot a different particle beam (started with 300 MeV e-):
-#     /gun/particle e-
-#     /gun/energy 200 keV
-#
-# Turn off a physics process (electron Bremsstrahlung, try /process/list to see all):
-#     /process/inactivate eBrem
 #
 # Don't forget to re-run the experiment after the changes!
 #     /run/beamOn 20

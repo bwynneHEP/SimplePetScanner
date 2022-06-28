@@ -2,7 +2,6 @@
 
 #include "G4ParticleTable.hh"
 #include "G4SystemOfUnits.hh"
-#include "g4csv.hh"
 
 GeneratorAction::GeneratorAction() : G4VUserPrimaryGeneratorAction()
 {
@@ -12,7 +11,7 @@ GeneratorAction::GeneratorAction() : G4VUserPrimaryGeneratorAction()
   // Default particle
   G4ParticleDefinition * particleDefinition = G4ParticleTable::GetParticleTable()->FindParticle( "e-" );
   m_particleGun->SetParticleDefinition( particleDefinition );
-  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, 0.0, 140.0*cm ) ); // in the middle of the detector
+  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, 0.0, 0.0 ) ); // in the middle of the detector
   m_particleGun->SetParticleMomentumDirection( G4ThreeVector( 1.0, 0.0, 0.0 ) ); // along x axis
   m_particleGun->SetParticleEnergy( 300.0*MeV );
 }
@@ -27,9 +26,4 @@ void GeneratorAction::GeneratePrimaries( G4Event* anEvent )
 {
   // Fire a particle
   m_particleGun->GeneratePrimaryVertex( anEvent );
-
-  // Store truth information - first column
-  auto analysisManager = G4AnalysisManager::Instance();
-  G4double particleEnergy = m_particleGun->GetParticleEnergy();
-  analysisManager->FillNtupleDColumn( 0, 0, particleEnergy );
 }

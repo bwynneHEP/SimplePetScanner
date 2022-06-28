@@ -9,7 +9,7 @@
 class SiemensQuadraDetector
 {
   public:
-    static G4VPhysicalVolume* Construct( std::string Name, G4LogicalVolume* worldLV );
+    static G4VPhysicalVolume* Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode );
 };
 
 #endif

@@ -33,15 +33,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
 
   // Definitions of Solids, Logical Volumes, Physical Volumes
-  G4double worldLength = 5.0*m;
+  G4double worldAxial = 1.5*m;
+  G4double worldTrans = 1.0*m;
 
   // WORLD: Solid (cube)
-  G4GeometryManager::GetInstance()->SetWorldMaximumExtent( worldLength );
+  G4GeometryManager::GetInstance()->SetWorldMaximumExtent( worldAxial );
   G4Box* worldS = new G4Box(
                  "World",         // its name
-                 worldLength,
-                 worldLength,
-                 worldLength );   // its size (in half-lengths)
+                 worldTrans,
+                 worldTrans,
+                 worldAxial );   // its size (in half-lengths)
 
   // WORLD: Logical volume (how to treat it)
   G4LogicalVolume* worldLV = new G4LogicalVolume(
@@ -62,11 +63,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  true );          // checking overlaps
 
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
-  //G4VPhysicalVolume* detectorPV = BasicDetector::Construct( "Detector", worldLV );
-  G4VPhysicalVolume* detectorPV = SiemensQuadraDetector::Construct( "Detector", worldLV );
+  ///*G4VPhysicalVolume* detectorPV =*/ BasicDetector::Construct( "Detector", worldLV );
+  /*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal" );
+  ///*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "block" );
+  ///*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "panel" );
 
-  // DETECTOR: Warn if there's an overlap
-  //if ( detectorPV->CheckOverlaps() ) std::cerr << "WARNING: your simulated objects overlap" << std::endl; // this is slow
+  // DETECTOR: Warn if there's an overlap, but it's very slow (N^2 I think)
+  //if ( detectorPV->CheckOverlaps() ) std::cerr << "WARNING: your simulated objects overlap" << std::endl;
 
   // Always return the physical world
   return worldPV;
@@ -84,7 +87,7 @@ void DetectorConstruction::ConstructSDandField()
   // Register the field messenger for deleting
   G4AutoDelete::Register( m_magneticFieldMessenger );
 
-  auto detector = new EnergyCounter( "Detector1_1" );
+  auto detector = new EnergyCounter( "Detector" );
   G4SDManager::GetSDMpointer()->AddNewDetector( detector );
   this->SetSensitiveDetector( "Detector", detector );
 }

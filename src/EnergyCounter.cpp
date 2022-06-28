@@ -1,6 +1,6 @@
 #include "EnergyCounter.h"
 
-#include "g4csv.hh"
+#include "G4RunManager.hh"
 
 EnergyCounter::EnergyCounter( const G4String& name )
   : G4VSensitiveDetector( name ) // Run the constructor of the parent class
@@ -37,7 +37,7 @@ G4bool EnergyCounter::ProcessHits( G4Step* step, G4TouchableHistory* history )
   G4double edep = step->GetTotalEnergyDeposit();
 
   // Add to the total energy in this crystal
-  m_totalEnergyMap[ getID ] += edep;
+  if ( edep > 0.0 ) m_totalEnergyMap[ getID ] += edep;
 
   return true;
 }
@@ -45,12 +45,9 @@ G4bool EnergyCounter::ProcessHits( G4Step* step, G4TouchableHistory* history )
 // At the end of an event, store the energy collected in this detector
 void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
 {
-  // Get the analysis manager
-  auto analysisManager = G4AnalysisManager::Instance();
-
-  // Fill ntuple 0, column by layer ID (+1 to allow truth column)
+  // Only output information for hits (since detector occupancy low)
   for ( const auto& entry : m_totalEnergyMap )
   {
-    analysisManager->FillNtupleDColumn( 0, entry.first+1, entry.second );
+    std::cout << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << entry.first << " " << entry.second << std::endl;
   }
 }
