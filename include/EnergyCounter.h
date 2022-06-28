@@ -17,6 +17,10 @@ class EnergyCounter : public G4VSensitiveDetector
 
   private:
     std::map< G4int, G4double > m_totalEnergyMap;
+    std::map< G4int, G4double > m_averageTimeMap;
+    std::map< G4int, G4double > m_averageRMap;
+    std::map< G4int, G4double > m_averagePhiMap;
+    std::map< G4int, G4double > m_averageZMap;
 };
 
 #endif

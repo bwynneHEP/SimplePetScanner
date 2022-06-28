@@ -64,8 +64,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
   ///*G4VPhysicalVolume* detectorPV =*/ BasicDetector::Construct( "Detector", worldLV );
-  /*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal" );
-  ///*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "block" );
+  ///*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal" );
+  /*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "block" );
   ///*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "panel" );
 
   // DETECTOR: Warn if there's an overlap, but it's very slow (N^2 I think)

@@ -13,7 +13,7 @@
 /gun/energy 300 MeV
 #
 # Initialise physics
-/run/beamOn 10
+/run/beamOn 1
 #
 ##################
 # 
