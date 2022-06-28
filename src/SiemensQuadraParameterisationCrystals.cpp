@@ -3,6 +3,8 @@
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4LogicalVolume.hh"
+#include "G4VisAttributes.hh"
 
 SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals()
 {
@@ -60,4 +62,10 @@ void SiemensQuadraParameterisationCrystals::ComputeTransformation( const G4int c
   G4RotationMatrix * rotation = new G4RotationMatrix();
   rotation->rotateZ( -phi );
   physVol->SetRotation( rotation );
+
+  // Visual properties
+  G4VisAttributes* vis = new G4VisAttributes( physVol->GetLogicalVolume()->GetVisAttributes() );
+  //vis->SetColor( 0.0, G4double( copyNo ) / 243200.0, 0.0, 1.0 );
+  vis->SetColor( 0.0, G4double( rand() % 243200 ) / 243200.0, 0.0, 1.0 );
+  physVol->GetLogicalVolume()->SetVisAttributes( vis );
 }
