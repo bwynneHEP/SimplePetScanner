@@ -1,10 +1,12 @@
 #include "DetectorConstruction.h"
 #include "ActionInitialization.h"
+#include "DecayTimeFinderAction.h"
 
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
-#include "FTFP_BERT.hh"
+#include "QGSP_BERT_HP.hh"
 #include "G4StepLimiterPhysics.hh"
+#include "G4RadioactiveDecayPhysics.hh"
 #include "Randomize.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
@@ -22,16 +24,20 @@ int main( int argc, char* argv[] )
   // Construct the default run manager
   G4RunManager* runManager = new G4RunManager();
 
-  // Set up detector
-  runManager->SetUserInitialization( new DetectorConstruction() );
-
   // Set up physics processes
-  G4VModularPhysicsList* physicsList = new FTFP_BERT();
+  G4VModularPhysicsList* physicsList = new QGSP_BERT_HP();
   physicsList->RegisterPhysics( new G4StepLimiterPhysics() );
+  physicsList->RegisterPhysics( new G4RadioactiveDecayPhysics() ); // For the tracers
   runManager->SetUserInitialization( physicsList );
 
-  // Set user action classes (just the generator really)
-  runManager->SetUserInitialization( new ActionInitialization() );
+  // Set user action classes
+  DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction();
+  ActionInitialization * actions = new ActionInitialization( decayTimeFinder );
+  runManager->SetUserInitialization( actions );
+
+  // Set up detector
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder );
+  runManager->SetUserInitialization( detector );
 
   // Set up display
   G4VisManager* visManager = new G4VisExecutive();

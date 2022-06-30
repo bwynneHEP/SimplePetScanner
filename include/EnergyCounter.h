@@ -1,6 +1,8 @@
 #ifndef EnergyCounter_h
 #define EnergyCounter_h 1
 
+#include "DecayTimeFinderAction.h"
+
 #include "G4VSensitiveDetector.hh"
 
 #include <map>
@@ -8,7 +10,7 @@
 class EnergyCounter : public G4VSensitiveDetector
 {
   public:
-    EnergyCounter( const G4String& name );
+    EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder );
     ~EnergyCounter() override;
 
     void Initialize( G4HCofThisEvent* hitCollection ) override;
@@ -21,6 +23,7 @@ class EnergyCounter : public G4VSensitiveDetector
     std::map< G4int, G4double > m_averageRMap;
     std::map< G4int, G4double > m_averagePhiMap;
     std::map< G4int, G4double > m_averageZMap;
+    DecayTimeFinderAction * m_decayTimeFinder;
 };
 
 #endif

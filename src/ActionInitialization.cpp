@@ -1,7 +1,8 @@
 #include "ActionInitialization.h"
-#include "GeneratorAction.h"
+#include "LinearSourceAction.h"
 
-ActionInitialization::ActionInitialization() : G4VUserActionInitialization()
+ActionInitialization::ActionInitialization( DecayTimeFinderAction * decayTimeFinder ) : G4VUserActionInitialization(),
+  m_decayTimeFinder( decayTimeFinder )
 {
 }
 
@@ -11,5 +12,6 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
-  this->SetUserAction( new GeneratorAction() );
+  this->SetUserAction( new LinearSourceAction( -350.0, 350.0 ) );
+  this->SetUserAction( m_decayTimeFinder );
 }

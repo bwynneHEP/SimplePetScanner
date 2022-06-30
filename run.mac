@@ -8,10 +8,6 @@
 /globalField/verbose 1
 /globalField/setValue 0 0 0 tesla
 #
-# Set up beam
-/gun/particle e-
-/gun/energy 300 MeV
-#
 # Initialise physics
 /run/beamOn 1
 #

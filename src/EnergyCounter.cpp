@@ -3,8 +3,9 @@
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 
-EnergyCounter::EnergyCounter( const G4String& name )
+EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder )
   : G4VSensitiveDetector( name ) // Run the constructor of the parent class
+  , m_decayTimeFinder( decayTimeFinder )
 {
 }
 
@@ -47,7 +48,7 @@ G4bool EnergyCounter::ProcessHits( G4Step* step, G4TouchableHistory* history )
     m_totalEnergyMap[ getID ] += edep;
 
     // Average coordinates for energy deposit, weighted by its size
-    m_averageTimeMap[ getID ] += step->GetPostStepPoint()->GetGlobalTime() * edep;
+    m_averageTimeMap[ getID ] += ( step->GetPostStepPoint()->GetGlobalTime() - m_decayTimeFinder->GetDecayTime() ) * edep;
     m_averageRMap[ getID ] += step->GetPostStepPoint()->GetPosition().getRho() * edep;
     m_averagePhiMap[ getID ] += step->GetPostStepPoint()->GetPosition().getPhi() * edep;
     m_averageZMap[ getID ] += step->GetPostStepPoint()->GetPosition().z() * edep;

@@ -23,8 +23,10 @@
 # Prettify detector
 /vis/geometry/set/visibility World 0 true
 /vis/viewer/set/style surface
-/vis/geometry/set/colour World 0 0 0 1 0.3 # Blue, 30% opaque
-/vis/geometry/set/colour Detector 0 0 1 0.5 1.0 # Green, 100% opaque
+/vis/geometry/set/colour World 0 0.0 0.0 1.0 0.1 # Blue, 10% opaque
+#/vis/geometry/set/colour Detector 0 0.0 1.0 0.5 1.0 # Green, 100% opaque
+/vis/geometry/set/colour Phantom 0 0.0 1.0 1.0 0.3 # Cyan, 30% opaque
+/vis/geometry/set/colour Envelope 0 1.0 1.0 1.0 0.3 # White, 30% opaque
 #
 # Draw smooth trajectories
 # Colour-coded by particle type

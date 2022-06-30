@@ -1,6 +1,8 @@
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
+#include "DecayTimeFinderAction.h"
+
 #include "G4VUserDetectorConstruction.hh"
 #include "G4GlobalMagFieldMessenger.hh"
 
@@ -8,7 +10,7 @@
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction();
+    DetectorConstruction( DecayTimeFinderAction * decayTimeFinder );
     ~DetectorConstruction() override;
 
     G4VPhysicalVolume* Construct() override;
@@ -17,6 +19,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
   private:
     // Global magnetic field messenger
     static G4ThreadLocal G4GlobalMagFieldMessenger* m_magneticFieldMessenger;
+
+    DecayTimeFinderAction * m_decayTimeFinder;
 };
 
 #endif

@@ -5,6 +5,7 @@
 
 #include "G4Material.hh"
 #include "G4Box.hh"
+#include "G4Tubs.hh"
 #include "G4NistManager.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
@@ -16,7 +17,8 @@
 G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
-DetectorConstruction::DetectorConstruction() : G4VUserDetectorConstruction()
+DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder ) : G4VUserDetectorConstruction(),
+  m_decayTimeFinder( decayTimeFinder )
 {
 }
 
@@ -31,10 +33,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
+  G4Material* water = nistManager->FindOrBuildMaterial( "G4_WATER" );
 
   // Definitions of Solids, Logical Volumes, Physical Volumes
-  G4double worldAxial = 1.5*m;
-  G4double worldTrans = 1.0*m;
+  G4double const worldAxial = 1.5*m;
+  G4double const worldTrans = 1.0*m;
+  G4double const phantomRadius = 20.3*cm;
+  G4double const phantomAxial = 35.0*cm;
 
   // WORLD: Solid (cube)
   G4GeometryManager::GetInstance()->SetWorldMaximumExtent( worldAxial );
@@ -58,6 +63,33 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  worldLV,         // its logical volume
                  "World",         // its name
                  0,               // its mother volume
+                 false,           // no boolean operations
+                 0,               // copy number
+                 true );          // checking overlaps
+
+  // PHANTOM: Solid (cylinder)
+  G4Tubs* phantomS = new G4Tubs(
+                 "Phantom",       // its name
+                 0.0,             // inner radius 0, so it's a solid cylinder (not a hollow tube)
+                 phantomRadius,   // outer radius
+                 phantomAxial,    // how long (z axis, remember it's a half-length)
+                 0.0*deg,         // starting angle
+                 360.0*deg );     // ending angle (i.e. it's a full circle)
+
+  // PHANTOM: Logical volume (how to treat it)
+  G4LogicalVolume* phantomLV = new G4LogicalVolume(
+                 phantomS,        // its solid
+                 water,           // its material
+                 "Phantom",       // its name
+                 0, 0, 0 );       // Modifiers we don't use
+
+  // PHANTOM: Physical volume (where is it)
+  /*G4VPhysicalVolume* phantomPV =*/ new G4PVPlacement(
+                 0,               // no rotation
+                 G4ThreeVector(0.0, 0.0, 0.0), // in the centre
+                 phantomLV,       // its logical volume
+                 "Phantom",       // its name
+                 worldLV,         // its mother volume
                  false,           // no boolean operations
                  0,               // copy number
                  true );          // checking overlaps
@@ -87,7 +119,7 @@ void DetectorConstruction::ConstructSDandField()
   // Register the field messenger for deleting
   G4AutoDelete::Register( m_magneticFieldMessenger );
 
-  auto detector = new EnergyCounter( "Detector" );
+  auto detector = new EnergyCounter( "Detector", m_decayTimeFinder );
   G4SDManager::GetSDMpointer()->AddNewDetector( detector );
   this->SetSensitiveDetector( "Detector", detector );
 }
