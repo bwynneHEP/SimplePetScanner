@@ -1,6 +1,3 @@
-# Apparently need to initialize first
-/run/initialize
-#
 # Use this open statement to create an OpenGL view:
 /vis/open OGL 1000x1000-0+0
 #
@@ -14,11 +11,10 @@
 #
 # Specify view angle:
 #/vis/viewer/set/viewpointThetaPhi 90 180 # x-section
-/vis/viewer/set/viewpointThetaPhi 120 150 # perspective
+/vis/viewer/set/viewpointThetaPhi 160 150 # perspective
 #
 # Specify zoom value:
-#/vis/viewer/zoom 1.4
-/vis/viewer/zoom 1.0
+/vis/viewer/zoom 4.0
 #
 # Prettify detector
 /vis/geometry/set/visibility World 0 true
@@ -54,3 +50,6 @@
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true
 /vis/verbose warnings
+#
+# Set draw limit large for detectors with many crystals
+/vis/ogl/set/displayListLimit 500000
