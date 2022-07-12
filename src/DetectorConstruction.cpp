@@ -17,8 +17,10 @@
 G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
-DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder ) : G4VUserDetectorConstruction(),
-  m_decayTimeFinder( decayTimeFinder )
+DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector )
+  : G4VUserDetectorConstruction()
+  , m_decayTimeFinder( decayTimeFinder )
+  , m_detector( detector )
 {
 }
 
@@ -34,11 +36,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
   G4Material* water = nistManager->FindOrBuildMaterial( "G4_WATER" );
+  //G4Material* brain = nistManager->FindOrBuildMaterial("G4_BRAIN_ICRP");
 
   // Definitions of Solids, Logical Volumes, Physical Volumes
   G4double const worldAxial = 1.5*m;
   G4double const worldTrans = 1.0*m;
-  G4double const phantomRadius = 20.3*cm;
+  G4double const phantomRadius = 20.3*cm / 2.0;
   G4double const phantomAxial = 35.0*cm;
 
   // WORLD: Solid (cube)
@@ -95,10 +98,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  true );          // checking overlaps
 
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
-  ///*G4VPhysicalVolume* detectorPV =*/ BasicDetector::Construct( "Detector", worldLV );
-  ///*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal" );
-  /*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "block" );
-  ///*G4VPhysicalVolume* detectorPV =*/ SiemensQuadraDetector::Construct( "Detector", worldLV, "panel" );
+  if ( m_detector == "SiemensCrystal" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal" );
+  else if ( m_detector == "SiemensBlock" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "block" );
+  else if ( m_detector == "SiemensPanel" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "panel" );
+  else BasicDetector::Construct( "Detector", worldLV );
 
   // DETECTOR: Warn if there's an overlap, but it's very slow (N^2 I think)
   //if ( detectorPV->CheckOverlaps() ) std::cerr << "WARNING: your simulated objects overlap" << std::endl;

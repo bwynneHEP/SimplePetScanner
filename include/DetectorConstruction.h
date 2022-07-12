@@ -10,7 +10,7 @@
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction( DecayTimeFinderAction * decayTimeFinder );
+    DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector );
     ~DetectorConstruction() override;
 
     G4VPhysicalVolume* Construct() override;
@@ -21,6 +21,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     static G4ThreadLocal G4GlobalMagFieldMessenger* m_magneticFieldMessenger;
 
     DecayTimeFinderAction * m_decayTimeFinder;
+    std::string m_detector;
 };
 
 #endif
