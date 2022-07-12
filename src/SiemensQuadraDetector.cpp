@@ -103,17 +103,17 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
   if ( Mode == "crystal" )
   {
-    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationCrystals();
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationCrystals( 243200 );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 243200, detectorParam );
   }
   else if ( Mode == "block" )
   {
-    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks();
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( 1216 );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 1216, detectorParam );
   }
   else if ( Mode == "panel" )
   {
-    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationPanels();
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationPanels( 38 );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 38, detectorParam );
   }
   else
