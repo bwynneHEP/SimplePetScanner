@@ -101,7 +101,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   if ( m_detector == "SiemensCrystal" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal" );
   else if ( m_detector == "SiemensBlock" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "block" );
   else if ( m_detector == "SiemensPanel" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "panel" );
-  else BasicDetector::Construct( "Detector", worldLV );
+  else if ( m_detector == "Basic" ) BasicDetector::Construct( "Detector", worldLV );
+  else G4cerr << "Unrecognised detector name: " << m_detector << G4endl;
 
   // DETECTOR: Warn if there's an overlap, but it's very slow (N^2 I think)
   //if ( detectorPV->CheckOverlaps() ) std::cerr << "WARNING: your simulated objects overlap" << std::endl;
