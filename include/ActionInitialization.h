@@ -9,13 +9,14 @@
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization( DecayTimeFinderAction* decayTimeFinder );
+    ActionInitialization( DecayTimeFinderAction* decayTimeFinder, std::string sourceName );
     ~ActionInitialization() override;
 
     void Build() const override;
 
   private:
     DecayTimeFinderAction * m_decayTimeFinder = nullptr;
+    std::string m_sourceName;
 };
 
 #endif

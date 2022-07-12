@@ -5,9 +5,10 @@
 #include "G4IonTable.hh"
 #include "Randomize.hh"
 
-LinearSourceAction::LinearSourceAction( G4double minZ, G4double maxZ )
+LinearSourceAction::LinearSourceAction( G4double minZ, G4double maxZ, std::string isotope )
   : G4VUserPrimaryGeneratorAction()
   , m_minZ( minZ ), m_maxZ( maxZ )
+  , m_isotope( isotope )
 {
   G4int nofParticles = 1;
   m_particleGun = new G4ParticleGun( nofParticles );
@@ -29,28 +30,36 @@ LinearSourceAction::~LinearSourceAction()
 // This function is called at the begining of event
 void LinearSourceAction::GeneratePrimaries( G4Event* anEvent )
 {
-  // Fluorine 18
-  G4int Z = 9, A = 18;
-  G4double ionCharge = 0.0 * eplus;
-  G4double excitEnergy = 0.0 * keV;
-  G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );
+  if ( m_isotope.size() )
+  {
+    G4int Z = 0, A = 0;
+    if ( m_isotope == "F18" )
+    {
+      // Fluorine 18
+      Z = 9;
+      A = 18;
+    }
+    else if ( m_isotope == "Zr89" )
+    {
+      // Zirconium 89
+      Z = 40;
+      A = 89;
+    }
+    else if ( m_isotope == "Y90" )
+    {
+      // Yttrium 90
+      Z = 39;
+      A = 90;
+    }
+    G4double ionCharge = 0.0 * eplus;
+    G4double excitEnergy = 0.0 * keV;
+    G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );
 
-  // Zirconium 89
-/*  G4int Z = 40, A = 89;
-  G4double ionCharge = 0.0 * eplus;
-  G4double excitEnergy = 0.0 * keV;
-  G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );*/
-
-  // Yttrium 90
-/*  G4int Z = 39, A = 90;
-  G4double ionCharge = 0.0 * eplus;
-  G4double excitEnergy = 0.0 * keV;
-  G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );*/
-
-  // Ion at rest
-  m_particleGun->SetParticleDefinition( ion );
-  m_particleGun->SetParticleCharge( ionCharge );
-  m_particleGun->SetParticleEnergy( 1.0 * eV );
+    // Ion at rest
+    m_particleGun->SetParticleDefinition( ion );
+    m_particleGun->SetParticleCharge( ionCharge );
+    m_particleGun->SetParticleEnergy( 1.0 * eV );
+  }
 
   // Choose a position on the z-axis
   G4double z = m_minZ + ( G4UniformRand() * ( m_maxZ - m_minZ ) );

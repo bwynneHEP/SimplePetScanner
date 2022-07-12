@@ -21,6 +21,7 @@ int main( int argc, char* argv[] )
   bool useGUI = false;
   int nEvents = 0;
   std::string detectorName = "";
+  std::string sourceName = "";
   for ( int argi = 1; argi < argc; ++argi )
   {
     std::string argument = argv[ argi ];
@@ -61,6 +62,15 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--source" )
+    {
+      if ( nextArgument.size() ) sourceName = nextArgument;
+      else
+      {
+        std::cerr << "Did not find source name to use" << std::endl;
+        return 1;
+      }
+    }
   }
 
   // Set up the random number generator
@@ -78,7 +88,7 @@ int main( int argc, char* argv[] )
 
   // Set user action classes
   DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction();
-  ActionInitialization * actions = new ActionInitialization( decayTimeFinder );
+  ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName );
   runManager->SetUserInitialization( actions );
 
   // Set up detector
