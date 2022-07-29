@@ -17,6 +17,9 @@ class SimulationDataset:
     self.unusedEvents = []
     self.usedEvents = []
 
+    eventCount = 0.0
+    hitCount = 0.0
+
     # Parse input
     inputFile = open( InputPath )
     for line in inputFile:
@@ -32,13 +35,21 @@ class SimulationDataset:
         for i in range( 3, len( splitLine ) ):
           wholeEvent.append( float( splitLine[i] ) )
 
+        # Debug
+        if eventCount == 0.0:
+          print( line, eventID, wholeEvent )
+
         # Multiple lines (hits) can go into a single event
         if eventID in self.inputData:
           self.inputData[ eventID ].append( wholeEvent )
         else:
           self.inputData[ eventID ] = [ wholeEvent ]
+          eventCount += 1.0
+        hitCount += 1.0
 
     inputFile.close()
+
+    print( str(eventCount) + " events loaded (" + str(TotalDecays) + " expected) with average " + str( hitCount / eventCount ) + " hits/event" )
 
     # Allow for decays that don't enter the energy window
     self.totalDecays = TotalDecays
@@ -75,5 +86,4 @@ def BackToBackEvent( Event, PhiTolerance ):
     deltaPhi -= 2.0 * math.pi
   while deltaPhi < -math.pi:
     deltaPhi += 2.0 * math.pi
-  return math.fabs( deltaPhi ) <= math.pi + PhiTolerance \
-    and math.fabs( deltaPhi ) >= math.pi - PhiTolerance
+  return math.fabs( deltaPhi ) >= ( math.pi - PhiTolerance )

@@ -36,6 +36,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
   G4Material* water = nistManager->FindOrBuildMaterial( "G4_WATER" );
+  G4Material* polyeth = nistManager->FindOrBuildMaterial( "G4_POLYETHYLENE" );
   //G4Material* brain = nistManager->FindOrBuildMaterial("G4_BRAIN_ICRP");
 
   // Definitions of Solids, Logical Volumes, Physical Volumes
@@ -82,7 +83,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // PHANTOM: Logical volume (how to treat it)
   G4LogicalVolume* phantomLV = new G4LogicalVolume(
                  phantomS,        // its solid
-                 water,           // its material
+                 polyeth,         // its material
                  "Phantom",       // its name
                  0, 0, 0 );       // Modifiers we don't use
 
