@@ -18,10 +18,11 @@ int main( int argc, char* argv[] )
   G4UIExecutive* ui = new G4UIExecutive( argc, argv );
 
   // Parse command-line arguments
-  bool useGUI = false;
-  int nEvents = 0;
+  G4bool useGUI = false;
+  G4int nEvents = 0;
   std::string detectorName = "";
   std::string sourceName = "";
+  G4double detectorLength = 0;
   for ( int argi = 1; argi < argc; ++argi )
   {
     std::string argument = argv[ argi ];
@@ -62,6 +63,15 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--length" )
+    {
+      if ( nextArgument.size() ) detectorLength = nextInteger;
+      else
+      {
+        std::cerr << "Did not find detector length to use" << std::endl;
+        return 1;
+      }
+    }
     else if ( argument == "--source" )
     {
       if ( nextArgument.size() ) sourceName = nextArgument;
@@ -92,7 +102,7 @@ int main( int argc, char* argv[] )
   runManager->SetUserInitialization( actions );
 
   // Set up detector
-  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName );
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength );
   runManager->SetUserInitialization( detector );
 
   G4VisManager* visManager = nullptr;

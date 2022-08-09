@@ -17,9 +17,10 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
   {
     // 32 rings in the detector
     G4int const crystalsPerRing = 7600;
-    G4int const ring = floor( copyNo / crystalsPerRing );
-    G4int const inRing = copyNo % crystalsPerRing;
     G4int const blocksPerRing = 38;
+    G4int const ring = floor( copyNo / crystalsPerRing );
+    G4int const nRings = ceil( nCopies / crystalsPerRing );
+    G4int const inRing = copyNo % crystalsPerRing;
 
     // 38 detector blocks per ring
     G4int const crystalsPerBlock = 200;
@@ -40,8 +41,8 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
     // Z position is ring itself
     G4double const crystalWidth = 3.2 * mm;
     G4double const ringWidth = crystalWidth * crystalsBlockAxial;
-    //G4double const z = ( G4double( ring ) - 15.5 ) * ( ringWidth + 1*mm ); // +1mm for easy view
-    G4double const z = ( G4double( ring ) - 15.5 ) * ringWidth; // offset by 16 rings to get it centred (roughly)
+    //G4double const z = ( G4double( ring ) - G4double( nRings - 1 ) / 2.0 ) * ( ringWidth + 1*mm ); // +1mm for easy view
+    G4double const z = ( G4double( ring ) - G4double( nRings - 1 ) / 2.0 ) * ringWidth; // offset to get it centred
 
     // Adjust Z position for the block axial
     //G4double const dZ = ( crystalWidth + 1*mm ) * ( blockAxial - ( crystalsBlockAxial / 2.0 ) ); // +1mm for easy view

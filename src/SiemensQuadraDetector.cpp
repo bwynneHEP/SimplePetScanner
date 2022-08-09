@@ -14,8 +14,14 @@
 
 #include "G4RotationMatrix.hh"
 
-G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode )
+G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM, std::string )
 {
+  // Default length
+  if ( LengthMM <= 0.0 )
+  {
+    LengthMM = 1024.0;
+  }
+
   // Materials
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
@@ -39,12 +45,25 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   G4double const blockAxial = crystalWidth * 10.0;
   G4double const blockTrans = crystalWidth * 20.0;
 
-  // Panels of blocks, contiguous in axial direction
-  G4double const panelAxial = blockAxial * 32.0;
+  // Work out how many rings
+  G4int nRings = ceil( LengthMM*mm / ( blockAxial * 2.0 ) );
+  if ( nRings == 32 )
+  {
+    std::cout << "Siemens Quadra detector with nRings: " << nRings << std::endl;
+  }
+  else
+  {
+    std::cout << "Siemens Quadra detector variant with nRings: " << nRings << std::endl;
+  }
 
-  G4double const envelopeInnerRadius = 40.0 * cm;
+  // Panels of blocks, contiguous in axial direction
+  G4double const panelAxial = blockAxial * nRings;
+
+  // Cylindrical envelope to contain whole detector
+  // (non-physical, allows use of parameterised detector crystals)
+  G4double const envelopeInnerRadius = 39.0 * cm;
   G4double const envelopeOuterRadius = 50.0 * cm;
-  G4double const envelopeAxial = 60.0 * cm;
+  G4double const envelopeAxial = blockAxial * ( nRings + 1 );
 
   G4double y = crystalWidth;
   G4double z = crystalWidth;
@@ -101,20 +120,21 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
                  0, 0, 0 );         // Modifiers we don't use
 
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
+  G4int blocksPerRing = 38;
   if ( Mode == "crystal" )
   {
-    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationCrystals( 243200 );
-    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 243200, detectorParam );
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationCrystals( 200*blocksPerRing*nRings );
+    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 200*blocksPerRing*nRings, detectorParam );
   }
   else if ( Mode == "block" )
   {
-    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( 1216 );
-    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 1216, detectorParam );
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( blocksPerRing*nRings );
+    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing*nRings, detectorParam );
   }
   else if ( Mode == "panel" )
   {
-    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationPanels( 38 );
-    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 38, detectorParam );
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationPanels( blocksPerRing );
+    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing, detectorParam );
   }
   else
   {

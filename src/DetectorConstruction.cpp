@@ -17,10 +17,11 @@
 G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
-DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector )
+DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength )
   : G4VUserDetectorConstruction()
   , m_decayTimeFinder( decayTimeFinder )
   , m_detector( detector )
+  , m_detectorLength( detectorLength )
 {
 }
 
@@ -35,7 +36,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
-  G4Material* water = nistManager->FindOrBuildMaterial( "G4_WATER" );
+  //G4Material* water = nistManager->FindOrBuildMaterial( "G4_WATER" );
   G4Material* polyeth = nistManager->FindOrBuildMaterial( "G4_POLYETHYLENE" );
   //G4Material* brain = nistManager->FindOrBuildMaterial("G4_BRAIN_ICRP");
 
@@ -99,9 +100,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  true );          // checking overlaps
 
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
-  if ( m_detector == "SiemensCrystal" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal" );
-  else if ( m_detector == "SiemensBlock" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "block" );
-  else if ( m_detector == "SiemensPanel" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "panel" );
+  if ( m_detector == "SiemensCrystal" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal", m_detectorLength );
+  else if ( m_detector == "SiemensBlock" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "block", m_detectorLength );
+  else if ( m_detector == "SiemensPanel" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "panel", m_detectorLength );
   else if ( m_detector == "Basic" ) BasicDetector::Construct( "Detector", worldLV );
   else G4cerr << "Unrecognised detector name: " << m_detector << G4endl;
 

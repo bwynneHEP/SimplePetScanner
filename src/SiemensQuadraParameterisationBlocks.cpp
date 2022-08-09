@@ -18,6 +18,7 @@ SiemensQuadraParameterisationBlocks::SiemensQuadraParameterisationBlocks( G4int 
     // 32 rings in the detector
     G4int const blocksPerRing = 38;
     G4int const ring = floor( copyNo / blocksPerRing );
+    G4int const nRings = ceil( nCopies / blocksPerRing );
     G4int const inRing = copyNo % blocksPerRing;
 
     // mini-blocks are 5x5 crystals, arranged into 2x4 blocks (2 in the axial direction I think)
@@ -31,8 +32,8 @@ SiemensQuadraParameterisationBlocks::SiemensQuadraParameterisationBlocks( G4int 
     // Z position is ring itself
     G4double const crystalWidth = 3.2 * mm;
     G4double const ringWidth = crystalWidth * crystalsBlockAxial;
-    //G4double const z = ( G4double( ring ) - 15.5 ) * ( ringWidth + 1*mm ); // +1mm for easy view
-    G4double const z = ( G4double( ring ) - 15.5 ) * ringWidth; // offset by 16 rings to get it centred (roughly)
+    //G4double const z = ( G4double( ring ) - G4double( nRings - 1 ) / 2.0 ) * ( ringWidth + 1*mm ); // +1mm for easy view
+    G4double const z = ( G4double( ring ) - G4double( nRings - 1 ) / 2.0 ) * ringWidth; // offset to get it centred
 
 
     G4double const r = 41.0 * cm; // 82cm "Detector ring diameter"
