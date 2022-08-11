@@ -17,11 +17,12 @@
 G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
-DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength )
+DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength )
   : G4VUserDetectorConstruction()
   , m_decayTimeFinder( decayTimeFinder )
   , m_detector( detector )
   , m_detectorLength( detectorLength )
+  , m_phantomLength( phantomLength )
 {
 }
 
@@ -44,7 +45,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4double const worldAxial = 1.5*m;
   G4double const worldTrans = 1.0*m;
   G4double const phantomRadius = 20.3*cm / 2.0;
-  G4double const phantomAxial = 35.0*cm;
+  G4double phantomAxial = 35.0*cm;
+  if ( m_phantomLength > 0.0 ) phantomAxial = m_phantomLength * mm / 2.0; // half-lengths
 
   // WORLD: Solid (cube)
   G4GeometryManager::GetInstance()->SetWorldMaximumExtent( worldAxial );
@@ -99,12 +101,20 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  0,               // copy number
                  true );          // checking overlaps
 
-  // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
-  if ( m_detector == "SiemensCrystal" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "crystal", m_detectorLength );
-  else if ( m_detector == "SiemensBlock" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "block", m_detectorLength );
-  else if ( m_detector == "SiemensPanel" ) SiemensQuadraDetector::Construct( "Detector", worldLV, "panel", m_detectorLength );
-  else if ( m_detector == "Basic" ) BasicDetector::Construct( "Detector", worldLV );
-  else G4cerr << "Unrecognised detector name: " << m_detector << G4endl;
+  // DETECTOR: separate class
+  if ( m_detector.substr( 0, 7 ) == "Siemens" )
+  {
+    SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_detectorLength );
+  }
+  else if ( m_detector == "Basic" )
+  {
+    BasicDetector::Construct( "Detector", worldLV );
+  }
+  else
+  {
+    std::cerr << "Unrecognised detector name: " << m_detector << std::endl;
+    exit(1);
+  }
 
   // DETECTOR: Warn if there's an overlap, but it's very slow (N^2 I think)
   //if ( detectorPV->CheckOverlaps() ) std::cerr << "WARNING: your simulated objects overlap" << std::endl;

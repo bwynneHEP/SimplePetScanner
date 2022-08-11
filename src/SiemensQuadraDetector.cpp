@@ -67,12 +67,12 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
 
   G4double y = crystalWidth;
   G4double z = crystalWidth;
-  if ( Mode == "block" )
+  if ( Mode == "Block" )
   {
     y = blockTrans;
     z = blockAxial;
   }
-  else if ( Mode == "panel" )
+  else if ( Mode == "Panel" )
   {
     y = blockTrans;
     z = panelAxial;
@@ -121,24 +121,24 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
 
   // DETECTOR: Physical volume, parameterised to copy, rotate and translate the crystals
   G4int blocksPerRing = 38;
-  if ( Mode == "crystal" )
+  if ( Mode == "Crystal" )
   {
     G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationCrystals( 200*blocksPerRing*nRings );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 200*blocksPerRing*nRings, detectorParam );
   }
-  else if ( Mode == "block" )
+  else if ( Mode == "Block" )
   {
     G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( blocksPerRing*nRings );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing*nRings, detectorParam );
   }
-  else if ( Mode == "panel" )
+  else if ( Mode == "Panel" )
   {
     G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationPanels( blocksPerRing );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing, detectorParam );
   }
   else
   {
-    G4cerr << "Unrecognised Siemens Quadra detector mode: " << Mode << G4endl;
-    return nullptr;
+    std::cerr << "Unrecognised Siemens Quadra detector mode: " << Mode << std::endl;
+    exit(1);
   }
 }
