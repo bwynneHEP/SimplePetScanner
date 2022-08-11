@@ -9,6 +9,8 @@
 
 import random
 import math
+import subprocess
+import os
 
 class SimulationDataset:
 
@@ -35,10 +37,6 @@ class SimulationDataset:
         for i in range( 3, len( splitLine ) ):
           wholeEvent.append( float( splitLine[i] ) )
 
-        # Debug
-        if eventCount == 0.0:
-          print( line, eventID, wholeEvent )
-
         # Multiple lines (hits) can go into a single event
         if eventID in self.inputData:
           self.inputData[ eventID ].append( wholeEvent )
@@ -49,7 +47,7 @@ class SimulationDataset:
 
     inputFile.close()
 
-    print( str(eventCount) + " events loaded (" + str(TotalDecays) + " expected) with average " + str( hitCount / eventCount ) + " hits/event" )
+    print( str(eventCount) + " events loaded (" + str(TotalDecays) + " simulated) with average " + str( hitCount / eventCount ) + " hits/event" )
 
     # Allow for decays that don't enter the energy window
     self.totalDecays = TotalDecays
@@ -87,3 +85,19 @@ def BackToBackEvent( Event, PhiTolerance ):
   while deltaPhi < -math.pi:
     deltaPhi += 2.0 * math.pi
   return math.fabs( deltaPhi ) >= ( math.pi - PhiTolerance )
+
+def CreateDataset( LengthMM, Source, TotalDecays, EnergyMin, EnergyMax ):
+  outputFileName = "hits.n" + str(TotalDecays) + ".SiemensBlock." + Source + "." + str(LengthMM) + "mm.csv"
+
+  # Check if file already present (in which case assume it's re-usable)
+  if not os.path.exists( outputFileName ):
+    command =  "../build/SimplePetScanner"
+    command += " -n " + str(TotalDecays)
+    command += " --detector SiemensBlock"
+    command += " --source " + Source
+    command += " --lengthMM " + str(LengthMM)
+    command += "; mv hits.csv " + outputFileName
+    process = subprocess.Popen( command, shell=True )
+    process.wait() # Later can do some multiprocess stuff if fix the file names
+
+  return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax )
