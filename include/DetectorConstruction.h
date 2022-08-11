@@ -10,7 +10,7 @@
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength );
+    DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength );
     ~DetectorConstruction() override;
 
     G4VPhysicalVolume* Construct() override;
@@ -23,6 +23,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     DecayTimeFinderAction * m_decayTimeFinder;
     std::string m_detector;
     G4double m_detectorLength;
+    G4double m_phantomLength;
 };
 
 #endif
