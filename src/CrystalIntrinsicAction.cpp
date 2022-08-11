@@ -5,10 +5,11 @@
 #include "G4IonTable.hh"
 #include "Randomize.hh"
 
-CrystalIntrinsicAction::CrystalIntrinsicAction( G4double minZ, G4double maxZ, G4double minR, G4double maxR )
+CrystalIntrinsicAction::CrystalIntrinsicAction( G4double minZ, G4double maxZ, std::string crystalType, G4double minR, G4double maxR )
   : G4VUserPrimaryGeneratorAction()
   , m_minZ( minZ ), m_maxZ( maxZ )
   , m_minR( minR ), m_maxR( maxR )
+  , m_crystalType( crystalType )
 {
   G4int nofParticles = 1;
   m_particleGun = new G4ParticleGun( nofParticles );
@@ -30,6 +31,12 @@ CrystalIntrinsicAction::~CrystalIntrinsicAction()
 // This function is called at the begining of event
 void CrystalIntrinsicAction::GeneratePrimaries( G4Event* anEvent )
 {
+  if ( m_crystalType != "LSO" && m_crystalType != "LYSO" )
+  {
+    std::cerr << "Unrecognised crystal type: " << m_crystalType << std::endl;
+    exit(1);
+  }
+
   // Lutetium 176
   G4int Z = 71, A = 176;
   G4double ionCharge = 0.0 * eplus;

@@ -8,7 +8,7 @@
 class CrystalIntrinsicAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    CrystalIntrinsicAction( G4double minZ, G4double maxZ, G4double minR, G4double maxR );
+    CrystalIntrinsicAction( G4double minZ, G4double maxZ, std::string crystalType, G4double minR, G4double maxR );
     ~CrystalIntrinsicAction() override;
 
     void GeneratePrimaries( G4Event* ) override;
@@ -19,6 +19,7 @@ class CrystalIntrinsicAction : public G4VUserPrimaryGeneratorAction
     G4double m_maxZ = 0.0;
     G4double m_minR = 0.0;
     G4double m_maxR = 0.0;
+    std::string m_crystalType;
 };
 
 #endif
