@@ -7,6 +7,10 @@ def CrystalMass():
 def DetectorMass():
   return CrystalMass() * 243200.0
 
+def DetectorMassLength( Length ):
+  nRings = math.ceil( Length / 32.0 )
+  return CrystalMass() * 7600.0 * nRings
+
 def LSOunitsInMass( Mass ):
   LSOmoleGram = 2.0*175.0 + 28.1 + 5.0*16.0 #Lu 2 si 1 O 5
   NAvogadro = 6.022E23
