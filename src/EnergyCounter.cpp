@@ -6,6 +6,7 @@
 EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder )
   : G4VSensitiveDetector( name ) // Run the constructor of the parent class
   , m_decayTimeFinder( decayTimeFinder )
+  , m_outputFile( "hits.csv" )
 {
 }
 
@@ -65,10 +66,10 @@ void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
   {
     // Divide by the unit when outputting
     // see http://geant4.web.cern.ch/sites/geant4.web.cern.ch/files/geant4/collaboration/working_groups/electromagnetic/gallery/units/SystemOfUnits.html
-    std::cout << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << entry.first << " " << entry.second / keV << " ";
-    std::cout << m_averageTimeMap[ entry.first ] / ( entry.second * ns ) << " ";
-    std::cout << m_averageRMap[ entry.first ] / ( entry.second * mm ) << " ";
-    std::cout << m_averagePhiMap[ entry.first ] / entry.second << " ";
-    std::cout << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
+    m_outputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << entry.first << " " << entry.second / keV << " ";
+    m_outputFile << m_averageTimeMap[ entry.first ] / ( entry.second * ns ) << " ";
+    m_outputFile << m_averageRMap[ entry.first ] / ( entry.second * mm ) << " ";
+    m_outputFile << m_averagePhiMap[ entry.first ] / entry.second << " ";
+    m_outputFile << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
   }
 }

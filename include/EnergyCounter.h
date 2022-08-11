@@ -6,6 +6,7 @@
 #include "G4VSensitiveDetector.hh"
 
 #include <map>
+#include <fstream>
 
 class EnergyCounter : public G4VSensitiveDetector
 {
@@ -24,6 +25,7 @@ class EnergyCounter : public G4VSensitiveDetector
     std::map< G4int, G4double > m_averagePhiMap;
     std::map< G4int, G4double > m_averageZMap;
     DecayTimeFinderAction * m_decayTimeFinder;
+    std::ofstream m_outputFile;
 };
 
 #endif
