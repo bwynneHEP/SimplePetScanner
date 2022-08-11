@@ -20,7 +20,7 @@
 /vis/geometry/set/visibility World 0 true
 /vis/viewer/set/style surface
 /vis/geometry/set/colour World 0 0.0 0.0 1.0 0.1 # Blue, 10% opaque
-#/vis/geometry/set/colour Detector 0 0.0 1.0 0.5 1.0 # Green, 100% opaque
+/vis/geometry/set/colour Detector 0 0.0 1.0 0.5 1.0 # Green, 100% opaque
 /vis/geometry/set/colour Phantom 0 0.0 1.0 1.0 0.3 # Cyan, 30% opaque
 /vis/geometry/set/colour Envelope 0 1.0 1.0 1.0 0.3 # White, 30% opaque
 #
@@ -53,3 +53,6 @@
 #
 # Set draw limit large for detectors with many crystals
 /vis/ogl/set/displayListLimit 500000
+#
+# Set limit for events on screen (unlimited)
+/vis/scene/endOfEventAction accumulate -1
