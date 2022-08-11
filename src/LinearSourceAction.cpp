@@ -51,6 +51,11 @@ void LinearSourceAction::GeneratePrimaries( G4Event* anEvent )
       Z = 39;
       A = 90;
     }
+    else
+    {
+      std::cerr << "Unrecognised tracer isotope: " << m_isotope << std::endl;
+      exit(1);
+    }
     G4double ionCharge = 0.0 * eplus;
     G4double excitEnergy = 0.0 * keV;
     G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );
