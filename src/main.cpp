@@ -22,7 +22,8 @@ int main( int argc, char* argv[] )
   G4int nEvents = 0;
   std::string detectorName = "";
   std::string sourceName = "";
-  G4double detectorLength = 0;
+  G4double detectorLength = 0.0;
+  G4double phantomLength = 0.0;
   for ( int argi = 1; argi < argc; ++argi )
   {
     std::string argument = argv[ argi ];
@@ -63,7 +64,7 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
-    else if ( argument == "--length" )
+    else if ( argument == "--detectorLengthMM" )
     {
       if ( nextArgument.size() ) detectorLength = nextInteger;
       else
@@ -80,6 +81,20 @@ int main( int argc, char* argv[] )
         std::cerr << "Did not find source name to use" << std::endl;
         return 1;
       }
+    }
+    else if ( argument == "--phantomLengthMM" )
+    {
+      if ( nextArgument.size() ) phantomLength = nextInteger;
+      else
+      {
+        std::cerr << "Did not find phantom length to use" << std::endl;
+        return 1;
+      }
+    }
+    else
+    {
+      std::cerr << "Unrecognised argument: " << argument << std::endl;
+      return 1;
     }
   }
 
@@ -98,11 +113,11 @@ int main( int argc, char* argv[] )
 
   // Set user action classes
   DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction();
-  ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName );
+  ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName, detectorLength, phantomLength );
   runManager->SetUserInitialization( actions );
 
   // Set up detector
-  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength );
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength );
   runManager->SetUserInitialization( detector );
 
   G4VisManager* visManager = nullptr;
