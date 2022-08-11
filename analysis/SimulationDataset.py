@@ -95,7 +95,7 @@ def CreateDataset( LengthMM, Source, TotalDecays, EnergyMin, EnergyMax ):
     command += " -n " + str(TotalDecays)
     command += " --detector SiemensBlock"
     command += " --source " + Source
-    command += " --lengthMM " + str(LengthMM)
+    command += " --detectorLengthMM " + str(LengthMM)
     command += "; mv hits.csv " + outputFileName
     process = subprocess.Popen( command, shell=True )
     process.wait() # Later can do some multiprocess stuff if fix the file names

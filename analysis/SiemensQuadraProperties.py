@@ -7,6 +7,10 @@ def CrystalMass():
 def DetectorMass():
   return CrystalMass() * 243200.0
 
+def DetectorDiscreteLength( Length ):
+  nRings = math.ceil( Length / 32.0 )
+  return nRings * 32.0
+
 def DetectorMassLength( Length ):
   nRings = math.ceil( Length / 32.0 )
   return CrystalMass() * 7600.0 * nRings
