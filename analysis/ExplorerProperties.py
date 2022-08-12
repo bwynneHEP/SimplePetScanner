@@ -41,4 +41,4 @@ def Lu176decaysInMass( Mass ):
 
 # does not give consistent answer with above, might be better
 def DecaysInVolume( Volume ):
-  return 400.0 * Volume:
+  return 400.0 * Volume
