@@ -28,18 +28,17 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   G4bool isotopes = false;
 
   // LYSO
+  // exact composition for EXPLORER from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6354919/
   G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );
   G4Element* Si = nistManager->FindOrBuildElement( "Si", isotopes );
   G4Element* Lu = nistManager->FindOrBuildElement( "Lu", isotopes );
-  G4Element* Ce = nistManager->FindOrBuildElement( "Ce", isotopes );
   G4Element* Y  = nistManager->FindOrBuildElement( "Y" , isotopes );
 
   G4Material* LYSO = new G4Material( "LYSO", 7.1*g/cm3, 5 );
-  LYSO->AddElement( Lu, 71.43 * perCent );
-  LYSO->AddElement( Y,  4.03  * perCent );
-  LYSO->AddElement( Si, 6.37  * perCent );
-  LYSO->AddElement( O,  18.14 * perCent );
-  LYSO->AddElement( Ce, 0.02  * perCent );
+  LYSO->AddElement( Lu, 71.447 * perCent );
+  LYSO->AddElement( Y,  4.034  * perCent );
+  LYSO->AddElement( Si, 6.371  * perCent );
+  LYSO->AddElement( O,  18.148 * perCent );
 
   // Single crystal (square prism)
   G4double const crystalWidth = 2.76*mm / 2.0; // half because it's measured from middle to face
