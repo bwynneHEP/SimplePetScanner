@@ -52,7 +52,7 @@
 /vis/verbose warnings
 #
 # Set draw limit large for detectors with many crystals
-/vis/ogl/set/displayListLimit 500000
+/vis/ogl/set/displayListLimit 600000
 #
 # Set limit for events on screen (unlimited)
 /vis/scene/endOfEventAction accumulate -1

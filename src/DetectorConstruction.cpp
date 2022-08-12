@@ -2,6 +2,7 @@
 #include "EnergyCounter.h"
 #include "BasicDetector.h"
 #include "SiemensQuadraDetector.h"
+#include "ExplorerDetector.h"
 
 #include "G4Material.hh"
 #include "G4Box.hh"
@@ -105,6 +106,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   if ( m_detector.substr( 0, 7 ) == "Siemens" )
   {
     SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_detectorLength );
+  }
+  else if ( m_detector.substr( 0, 8 ) == "Explorer" )
+  {
+    ExplorerDetector::Construct( "Detector", worldLV, m_detector.substr( 8 ), m_detectorLength );
   }
   else if ( m_detector == "Basic" )
   {
