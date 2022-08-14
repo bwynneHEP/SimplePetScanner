@@ -19,7 +19,7 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   // Default length
   if ( LengthMM <= 0.0 )
   {
-    LengthMM = 1850.0;//1940.0;
+    LengthMM = 1872.92;//1940.0;
   }
 
   // Materials
@@ -34,7 +34,7 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   G4Element* Lu = nistManager->FindOrBuildElement( "Lu", isotopes );
   G4Element* Y  = nistManager->FindOrBuildElement( "Y" , isotopes );
 
-  G4Material* LYSO = new G4Material( "LYSO", 7.1*g/cm3, 5 );
+  G4Material* LYSO = new G4Material( "LYSO", 7.1*g/cm3, 4 );
   LYSO->AddElement( Lu, 71.447 * perCent );
   LYSO->AddElement( Y,  4.034  * perCent );
   LYSO->AddElement( Si, 6.371  * perCent );
@@ -49,7 +49,8 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   G4double const blockTrans = crystalWidth * 35.0;
 
   // Work out how many rings
-  G4int nRings = ceil( LengthMM*mm / ( blockAxial * 2.0 ) );
+  G4double const blockOffset = 2.6*mm;
+  G4int nRings = ceil( LengthMM*mm / ( ( blockAxial * 2.0 ) + blockOffset ) );
   if ( nRings == 8 )
   {
     std::cout << "Explorer detector with nRings: " << nRings << std::endl;
@@ -60,7 +61,6 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   }
 
   // Panels of blocks, contiguous in axial direction
-  G4double const blockOffset = 2.6*mm;
   G4double const panelAxial = ( blockAxial * nRings ) + ( blockOffset * ( nRings - 1 ) );
 
   // Cylindrical envelope to contain whole detector

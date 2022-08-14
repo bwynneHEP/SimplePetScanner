@@ -22,7 +22,7 @@ void ActionInitialization::Build() const
   if ( m_sourceName.substr( 0, 6 ) == "Linear" )
   {
     G4double phantomLength = 350.0*mm;
-    if ( m_phantomLength >= 0.0 )
+    if ( m_phantomLength > 0.0 )
     {
       phantomLength = m_phantomLength * mm / 2.0; // half-lengths
     }
@@ -31,11 +31,20 @@ void ActionInitialization::Build() const
   else if ( m_sourceName == "Siemens" )
   {
     G4double detectorLength = 512.0*mm;
-    if ( m_detectorLength >= 0.0 )
+    if ( m_detectorLength > 0.0 )
     {
       detectorLength = m_detectorLength * mm / 2.0; // half-lengths
     }
     this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LSO", 400.0*mm, 420.0*mm ) );
+  }
+  else if ( m_sourceName == "Explorer" )
+  {
+    G4double detectorLength = 936.46*mm;
+    if ( m_detectorLength > 0.0 )
+    {
+      detectorLength = m_detectorLength * mm / 2.0; // half-lengths
+    }
+    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LYSO", 393*mm, 411.1*mm ) );
   }
   else
   {
