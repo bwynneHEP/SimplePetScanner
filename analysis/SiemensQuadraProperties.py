@@ -1,5 +1,8 @@
 import math
 
+def DetectorRadius():
+  return 400 # 82cm radius - 1cm crystal half-depth. Maybe 82 should be inner radius and need to adjust simulation?
+
 def CrystalVolume():
   return 0.32 * 0.32 * 2.0
 

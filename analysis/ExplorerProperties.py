@@ -1,5 +1,8 @@
 import math
 
+def DetectorRadius():
+  return 393
+
 def CrystalVolume():
   return 0.276 * 0.276 * 18.1
 
@@ -13,15 +16,15 @@ def DetectorMass():
   return CrystalMass() * 564480.0
 
 def DetectorDiscreteLength( Length ):
-  nRings = float( math.ceil( Length / 8.0 ) )
-  return nRings * 8.0
+  nRings = float( math.ceil( Length / 231.84 ) )
+  return nRings * 231.84
 
 def DetectorVolumeLength( Length ):
-  nRings = float( math.ceil( Length / 8.0 ) )
+  nRings = float( math.ceil( Length / 231.84 ) )
   return CrystalVolume() * 70560.0 * nRings
 
 def DetectorMassLength( Length ):
-  nRings = float( math.ceil( Length / 8.0 ) )
+  nRings = float( math.ceil( Length / 231.84 ) )
   return CrystalMass() * 70560.0 * nRings
 
 def LSOunitsInMass( Mass ):
