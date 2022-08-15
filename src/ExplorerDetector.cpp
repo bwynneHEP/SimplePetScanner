@@ -9,10 +9,7 @@
 #include "G4Tubs.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
-#include "G4SystemOfUnits.hh"
 #include "G4PVParameterised.hh"
-
-#include "G4RotationMatrix.hh"
 
 G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM, std::string )
 {
@@ -40,17 +37,7 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   LYSO->AddElement( Si, 6.371  * perCent );
   LYSO->AddElement( O,  18.148 * perCent );
 
-  // Single crystal (square prism)
-  G4double const crystalWidth = 2.76*mm / 2.0; // half because it's measured from middle to face
-  G4double const crystalLength = 18.1*mm / 2.0;
-
-  // 6x7 mini-blocks of crystals, 14x5 blocks
-  G4double const blockAxial = crystalWidth * 84.0;
-  G4double const blockTrans = crystalWidth * 35.0;
-
-  // Work out how many rings
-  G4double const blockOffset = 2.6*mm;
-  G4int nRings = ceil( LengthMM*mm / ( ( blockAxial * 2.0 ) + blockOffset ) );
+  G4int nRings = NRingsInLength( LengthMM );
   if ( nRings == 8 )
   {
     std::cout << "Explorer detector with nRings: " << nRings << std::endl;
@@ -61,7 +48,7 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   }
 
   // Panels of blocks, contiguous in axial direction
-  G4double const panelAxial = ( blockAxial * nRings ) + ( blockOffset * ( nRings - 1 ) );
+  G4double const panelAxial = LengthForNRings( nRings ) / 2.0; // half-length as always
 
   // Cylindrical envelope to contain whole detector
   // (non-physical, allows use of parameterised detector crystals)
@@ -145,4 +132,13 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
     std::cerr << "Unrecognised Explorer detector mode: " << Mode << std::endl;
     exit(1);
   }
+}
+
+G4int ExplorerDetector::NRingsInLength( G4double const LengthMM )
+{
+  return ceil( ( ( LengthMM * mm ) + blockOffset ) / ( ( blockAxial * 2.0 ) + blockOffset ) );
+}
+G4double ExplorerDetector::LengthForNRings( G4int const NRings )
+{
+  return ( blockAxial * 2.0 * NRings ) + ( blockOffset * ( NRings - 1 ) );
 }

@@ -1,6 +1,8 @@
 #include "ActionInitialization.h"
 #include "LinearSourceAction.h"
 #include "CrystalIntrinsicAction.h"
+#include "ExplorerDetector.h"
+#include "SiemensQuadraDetector.h"
 
 #include "G4SystemOfUnits.hh"
 
@@ -33,7 +35,8 @@ void ActionInitialization::Build() const
     G4double detectorLength = 512.0*mm;
     if ( m_detectorLength > 0.0 )
     {
-      detectorLength = m_detectorLength * mm / 2.0; // half-lengths
+      detectorLength = SiemensQuadraDetector::LengthForNRings( SiemensQuadraDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
+      detectorLength /= 2.0; // half-lengths
     }
     this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LSO", 400.0*mm, 420.0*mm ) );
   }
@@ -42,7 +45,8 @@ void ActionInitialization::Build() const
     G4double detectorLength = 936.46*mm;
     if ( m_detectorLength > 0.0 )
     {
-      detectorLength = m_detectorLength * mm / 2.0; // half-lengths
+      detectorLength = ExplorerDetector::LengthForNRings( ExplorerDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
+      detectorLength /= 2.0; // half-lengths
     }
     this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LYSO", 393*mm, 411.1*mm ) );
   }

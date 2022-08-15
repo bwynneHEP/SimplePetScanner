@@ -9,10 +9,7 @@
 #include "G4Tubs.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
-#include "G4SystemOfUnits.hh"
 #include "G4PVParameterised.hh"
-
-#include "G4RotationMatrix.hh"
 
 G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM, std::string )
 {
@@ -37,16 +34,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   LSO->AddElement( Si, 1 );
   LSO->AddElement( O , 5 );
 
-  // Single crystal (square prism)
-  G4double const crystalWidth = 3.2*mm / 2.0; // half because it's measured from middle to face
-  G4double const crystalLength = 20.0*mm / 2.0;
-
-  // 5x5 mini-blocks of crystals, 2x4 blocks
-  G4double const blockAxial = crystalWidth * 10.0;
-  G4double const blockTrans = crystalWidth * 20.0;
-
-  // Work out how many rings
-  G4int nRings = ceil( LengthMM*mm / ( blockAxial * 2.0 ) );
+  G4int nRings = NRingsInLength( LengthMM );
   if ( nRings == 32 )
   {
     std::cout << "Siemens Quadra detector with nRings: " << nRings << std::endl;
@@ -57,11 +45,11 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   }
 
   // Panels of blocks, contiguous in axial direction
-  G4double const panelAxial = blockAxial * nRings;
+  G4double const panelAxial = LengthForNRings( nRings ) / 2.0; // half-length as always
 
   // Cylindrical envelope to contain whole detector
   // (non-physical, allows use of parameterised detector crystals)
-  G4double const envelopeInnerRadius = 39.0 * cm;
+  G4double const envelopeInnerRadius = 38.0 * cm;
   G4double const envelopeOuterRadius = 50.0 * cm;
   G4double const envelopeAxial = blockAxial * ( nRings + 1 );
 
@@ -141,4 +129,13 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
     std::cerr << "Unrecognised Siemens Quadra detector mode: " << Mode << std::endl;
     exit(1);
   }
+}
+
+G4int SiemensQuadraDetector::NRingsInLength( G4double const LengthMM )
+{
+  return ceil( LengthMM * mm / ( blockAxial * 2.0 ) );
+}
+G4double SiemensQuadraDetector::LengthForNRings( G4int const NRings )
+{
+  return blockAxial * 2.0 * NRings;
 }
