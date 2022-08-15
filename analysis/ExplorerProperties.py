@@ -4,7 +4,7 @@ def DetectorRadius():
   return 393
 
 def CrystalVolume():
-  return 0.276 * 0.276 * 18.1
+  return 0.276 * 0.276 * 1.81
 
 def CrystalMass():
   return CrystalVolume() * 7.1
