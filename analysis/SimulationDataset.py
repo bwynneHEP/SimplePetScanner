@@ -69,35 +69,61 @@ class SimulationDataset:
     else:
       return []
 
-def TwoHitEvent( Event ):
-  return len( Event ) == 2
+def FindHitRadius( Event, DetectorRadius ):
+  if len( Event ) != 2:
+    return -1.0
 
-def BackToBackEvent( Event, PhiTolerance ):
-  if not TwoHitEvent( Event ):
-    return False
-
+  # Calculate delta phi
   phi1 = Event[0][4]
   phi2 = Event[1][4]
-
   deltaPhi = phi1 - phi2
   while deltaPhi > math.pi:
     deltaPhi -= 2.0 * math.pi
   while deltaPhi < -math.pi:
     deltaPhi += 2.0 * math.pi
-  return math.fabs( deltaPhi ) >= ( math.pi - PhiTolerance )
 
-def CreateDataset( LengthMM, Source, TotalDecays, EnergyMin, EnergyMax ):
-  outputFileName = "hits.n" + str(TotalDecays) + ".SiemensBlock." + Source + "." + str(LengthMM) + "mm.csv"
+  #print( "delta phi: ", deltaPhi )
+  return DetectorRadius * math.cos( math.fabs( deltaPhi/2.0 ) )
+
+def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
+  #print( Event )
+  if len( Event ) != 2:
+    #print( "not 2 hit" )
+    return False
+
+  # If there's a z-cut, apply it
+  if ZMin != ZMax:
+    meanZ = ( Event[0][5] + Event[1][5] ) / 2.0
+    if meanZ < ZMin or meanZ > ZMax:
+      #print( "not Z window" )
+      return False
+
+  # Cut on the radius of closest approach
+  rMin = FindHitRadius( Event, DetectorRadius )
+  #print( rMin, " versus ", RMax )
+  return rMin <= RMax
+
+def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
+  return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
+
+def CreateDataset( LengthMM, Detector, Source, TotalDecays, EnergyMin, EnergyMax ):
+  outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + Source + "." + str(LengthMM) + "mm.csv"
 
   # Check if file already present (in which case assume it's re-usable)
   if not os.path.exists( outputFileName ):
     command =  "../build/SimplePetScanner"
     command += " -n " + str(TotalDecays)
-    command += " --detector SiemensBlock"
+    command += " --detector " + Detector + "Block"
     command += " --source " + Source
     command += " --detectorLengthMM " + str(LengthMM)
     command += "; mv hits.csv " + outputFileName
     process = subprocess.Popen( command, shell=True )
     process.wait() # Later can do some multiprocess stuff if fix the file names
+
+    if process.returncode == 0:
+      print( "Simulation complete" )
+    else:
+      print( "Simulation failed with return code: ", process.returncode )
+      return None
 
   return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax )
