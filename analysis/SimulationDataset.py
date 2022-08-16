@@ -82,40 +82,44 @@ def FindHitRadius( Event, DetectorRadius ):
   while deltaPhi < -math.pi:
     deltaPhi += 2.0 * math.pi
 
-  #print( "delta phi: ", deltaPhi )
-  return DetectorRadius * math.cos( math.fabs( deltaPhi/2.0 ) )
+  if deltaPhi < 0.0:
+    return -DetectorRadius * math.cos( deltaPhi/2.0 )
+  else:
+    return DetectorRadius * math.cos( deltaPhi/2.0 )
 
 def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
-  #print( Event )
   if len( Event ) != 2:
-    #print( "not 2 hit" )
     return False
 
   # If there's a z-cut, apply it
   if ZMin != ZMax:
     meanZ = ( Event[0][5] + Event[1][5] ) / 2.0
     if meanZ < ZMin or meanZ > ZMax:
-      #print( "not Z window" )
       return False
 
   # Cut on the radius of closest approach
   rMin = FindHitRadius( Event, DetectorRadius )
-  #print( rMin, " versus ", RMax )
-  return rMin <= RMax
+  return math.fabs( rMin ) <= RMax
 
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
-def CreateDataset( LengthMM, Detector, Source, TotalDecays, EnergyMin, EnergyMax ):
-  outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + Source + "." + str(LengthMM) + "mm.csv"
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax ):
+
+  outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm.Background.csv"
+  if "Linear" in Source:
+    outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm." + Source + "." + str(SourceLengthMM) + "mm.csv"
 
   # Check if file already present (in which case assume it's re-usable)
-  if not os.path.exists( outputFileName ):
+  if os.path.exists( outputFileName ):
+    print( "Re-using previous simulation" )
+  else:
     command =  "../build/SimplePetScanner"
     command += " -n " + str(TotalDecays)
     command += " --detector " + Detector + "Block"
+    command += " --detectorLengthMM " + str(DetectorLengthMM)
     command += " --source " + Source
-    command += " --detectorLengthMM " + str(LengthMM)
+    command += " --phantomLengthMM " + str(SourceLengthMM)
     command += "; mv hits.csv " + outputFileName
     process = subprocess.Popen( command, shell=True )
     process.wait() # Later can do some multiprocess stuff if fix the file names
