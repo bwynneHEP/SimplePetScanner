@@ -3,11 +3,12 @@
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 
-EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder )
+EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName )
   : G4VSensitiveDetector( name ) // Run the constructor of the parent class
   , m_decayTimeFinder( decayTimeFinder )
-  , m_outputFile( "hits.csv" )
 {
+  if ( outputFileName == "" ) m_outputFile = std::ofstream( "hits.csv" );
+  else m_outputFile = std::ofstream( outputFileName );
 }
 
 EnergyCounter::~EnergyCounter()

@@ -18,12 +18,13 @@
 G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
-DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength )
+DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength, std::string outputFileName )
   : G4VUserDetectorConstruction()
   , m_decayTimeFinder( decayTimeFinder )
   , m_detector( detector )
   , m_detectorLength( detectorLength )
   , m_phantomLength( phantomLength )
+  , m_outputFileName( outputFileName )
 {
 }
 
@@ -140,7 +141,7 @@ void DetectorConstruction::ConstructSDandField()
   // Register the field messenger for deleting
   G4AutoDelete::Register( m_magneticFieldMessenger );
 
-  auto detector = new EnergyCounter( "Detector", m_decayTimeFinder );
+  auto detector = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName );
   G4SDManager::GetSDMpointer()->AddNewDetector( detector );
   this->SetSensitiveDetector( "Detector", detector );
 }

@@ -11,7 +11,7 @@
 class EnergyCounter : public G4VSensitiveDetector
 {
   public:
-    EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder );
+    EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName );
     ~EnergyCounter() override;
 
     void Initialize( G4HCofThisEvent* hitCollection ) override;

@@ -22,6 +22,7 @@ int main( int argc, char* argv[] )
   G4int nEvents = 0;
   std::string detectorName = "";
   std::string sourceName = "";
+  std::string outputFileName = "";
   G4double detectorLength = 0.0;
   G4double phantomLength = 0.0;
   for ( int argi = 1; argi < argc; ++argi )
@@ -91,6 +92,15 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--outputFileName" )
+    {
+      if ( nextArgument.size() ) outputFileName = nextArgument;
+      else
+      {
+        std::cerr << "Did not find output file name to use" << std::endl;
+        return 1;
+      }
+    }
     else
     {
       std::cerr << "Unrecognised argument: " << argument << std::endl;
@@ -117,7 +127,7 @@ int main( int argc, char* argv[] )
   runManager->SetUserInitialization( actions );
 
   // Set up detector
-  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength );
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName );
   runManager->SetUserInitialization( detector );
 
   G4VisManager* visManager = nullptr;
