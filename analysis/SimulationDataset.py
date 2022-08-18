@@ -106,9 +106,8 @@ def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
 
 def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax ):
 
-  outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm.Background.csv"
-  if "Linear" in Source:
-    outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm." + Source + "." + str(SourceLengthMM) + "mm.csv"
+  # Phantom length affects the attenuating material, so include it even if source is detector
+  outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm." + Source + "." + str(SourceLengthMM) + "mm.csv"
 
   # Check if file already present (in which case assume it's re-usable)
   if os.path.exists( outputFileName ):
