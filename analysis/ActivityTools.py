@@ -8,6 +8,7 @@ def F18ActivityAtTime( StartingActivity, TimeElapsed ):
 def Zr89ActivityAtTime( StartingActivity, TimeElapsed ):
     return ActivityAtTime( StartingActivity, TimeElapsed, 78.41*60.0*60.0 )
 
+
 import random
 
 # Simulate poisson-distributed random decay times
@@ -76,36 +77,8 @@ def GenerateCoincidences( DecayRates, EndTime, TimeWindow, TimelinesOut = None )
 
     return coincidences, coincidenceTimes
 
+
 from SimulationDataset import *
-
-def CalculateNECR( SourceActivity, SourceData, CrystalActivity, CrystalData, SimulationWindow, CoincidenceWindow, DetectorRadius ):
-
-    # generate coincidences
-    coincidences = None
-    if CrystalActivity > 0:
-        coincidences, coincidenceTimes = GenerateCoincidences( [SourceActivity, CrystalActivity], SimulationWindow, CoincidenceWindow )
-    else:
-        coincidences, coincidenceTimes = GenerateCoincidences( [SourceActivity], SimulationWindow, CoincidenceWindow )
-
-    # classify the coincidences
-    trueEvents = 0
-    allEvents = 0
-    for coincidence in coincidences:
-        event = []
-        for source in coincidence:
-            if source == 0:
-                event += SourceData.SampleOneEvent()
-            else:
-                event += CrystalData.SampleOneEvent()
-
-        if TwoHitEvent( event, DetectorRadius ):
-            allEvents += 1
-            if BackToBackEvent( event, DetectorRadius ):
-                trueEvents += 1
-
-    necr = trueEvents * trueEvents / ( allEvents * SimulationWindow )
-    return necr
-
 import numpy as np
 
 # Closer to the NEMA calculation, hopefully similar results
