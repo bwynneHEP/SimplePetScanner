@@ -48,7 +48,7 @@ G4bool EnergyCounter::ProcessHits( G4Step* step, G4TouchableHistory* history )
   {
     m_totalEnergyMap[ getID ] += edep;
     m_integratedEnergyMap[ getID ] += edep;
-    if ( m_integratedEnergyMap[ getID ] > m_maxEnergyValue && getID % 38 != 0 ) m_maxEnergyValue = m_integratedEnergyMap[ getID ];
+    if ( m_integratedEnergyMap[ getID ] > m_maxEnergyValue && getID ) m_maxEnergyValue = m_integratedEnergyMap[ getID ];
 
     // Average coordinates for energy deposit, weighted by its size
     m_averageTimeMap[ getID ] += ( step->GetPostStepPoint()->GetGlobalTime() - m_decayTimeFinder->GetDecayTime() ) * edep;
@@ -81,7 +81,9 @@ G4float EnergyCounter::GetEFraction( const G4int copyNo ) const
   auto searchResult = m_integratedEnergyMap.find( copyNo );
   if ( searchResult != m_integratedEnergyMap.end() )
   {
-    return searchResult->second / m_maxEnergyValue;
+    // Use a log scale, helps for the intrinsic activity
+    double logVal = log( searchResult->second / m_maxEnergyValue );
+    return 1.0 + ( logVal * 0.1 ); // logs will be negative
   }
   return 0.0;
 }
