@@ -18,6 +18,7 @@ class SimulationDataset:
     self.inputData = {}
     self.unusedEvents = []
     self.usedEvents = []
+    self.totalDecays = TotalDecays
 
     eventCount = 0.0
     hitCount = 0.0
@@ -47,10 +48,9 @@ class SimulationDataset:
 
     inputFile.close()
 
-    print( str(eventCount) + " events loaded (" + str(TotalDecays) + " simulated) with average " + str( hitCount / eventCount ) + " hits/event" )
+    print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( hitCount / eventCount ) + " hits/event" )
 
     # Allow for decays that don't enter the energy window
-    self.totalDecays = TotalDecays
     for i in range( self.totalDecays ):
       self.unusedEvents.append( i )
 
@@ -68,6 +68,9 @@ class SimulationDataset:
       return self.inputData[ eventID ]
     else:
       return []
+
+  def size( self ):
+    return self.totalDecays
 
 def FindHitRadius( Event, DetectorRadius ):
   if len( Event ) != 2:
