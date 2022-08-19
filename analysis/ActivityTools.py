@@ -109,7 +109,9 @@ def NECRFromHistogram( bins, values, SimulationWindow ):
     
     true = centralTotal - centralBackground
     rPlusS = histogramTotal - true
-    necr = true * true / histogramTotal
+    necr = 0.0
+    if histogramTotal > 0.0:
+        necr = true * true / histogramTotal
     
     return necr/SimulationWindow, true/SimulationWindow, rPlusS/SimulationWindow
 
