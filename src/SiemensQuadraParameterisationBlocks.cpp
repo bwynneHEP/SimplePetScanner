@@ -66,7 +66,10 @@ void SiemensQuadraParameterisationBlocks::ComputeTransformation( const G4int cop
   }
 
   // Just for fun, make the crystal colour scale with total energy
-  m_visions.at( copyNo )->SetColor( 0.0, m_counter->GetEFraction( copyNo ), 0.0, 1.0 );
+  if ( m_counter )
+  {
+    m_visions.at( copyNo )->SetColor( 0.0, m_counter->GetEFraction( copyNo ), 0.0, 1.0 );
+  }
 
   // Return precalculated result
   physVol->SetTranslation( m_positions.at( copyNo ) );

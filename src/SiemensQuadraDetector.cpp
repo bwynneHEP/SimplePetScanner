@@ -61,7 +61,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
 
   G4double y = crystalWidth;
   G4double z = crystalWidth;
-  if ( Mode == "Block" )
+  if ( Mode == "Block" || Mode == "BlockEnergy" )
   {
     y = blockTrans;
     z = blockAxial;
@@ -121,6 +121,11 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 200*blocksPerRing*nRings, detectorParam );
   }
   else if ( Mode == "Block" )
+  {
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( blocksPerRing*nRings, nullptr );
+    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing*nRings, detectorParam );
+  }
+  else if ( Mode == "BlockEnergy" )
   {
     G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( blocksPerRing*nRings, Counter );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing*nRings, detectorParam );
