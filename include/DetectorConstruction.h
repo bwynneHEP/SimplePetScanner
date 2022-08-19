@@ -2,6 +2,7 @@
 #define DetectorConstruction_h 1
 
 #include "DecayTimeFinderAction.h"
+#include "EnergyCounter.h"
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4GlobalMagFieldMessenger.hh"
@@ -21,6 +22,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     static G4ThreadLocal G4GlobalMagFieldMessenger* m_magneticFieldMessenger;
 
     DecayTimeFinderAction * m_decayTimeFinder;
+    EnergyCounter * m_energyCounter;
     std::string m_detector;
     std::string m_outputFileName;
     G4double m_detectorLength;

@@ -1,5 +1,4 @@
 #include "DetectorConstruction.h"
-#include "EnergyCounter.h"
 #include "BasicDetector.h"
 #include "SiemensQuadraDetector.h"
 #include "ExplorerDetector.h"
@@ -104,9 +103,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  true );          // checking overlaps
 
   // DETECTOR: separate class
+  m_energyCounter = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName );
   if ( m_detector.substr( 0, 7 ) == "Siemens" )
   {
-    SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_detectorLength );
+    SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_detectorLength, m_energyCounter );
   }
   else if ( m_detector.substr( 0, 8 ) == "Explorer" )
   {
@@ -141,7 +141,7 @@ void DetectorConstruction::ConstructSDandField()
   // Register the field messenger for deleting
   G4AutoDelete::Register( m_magneticFieldMessenger );
 
-  auto detector = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName );
-  G4SDManager::GetSDMpointer()->AddNewDetector( detector );
-  this->SetSensitiveDetector( "Detector", detector );
+  // Sensitive detector
+  G4SDManager::GetSDMpointer()->AddNewDetector( m_energyCounter );
+  this->SetSensitiveDetector( "Detector", m_energyCounter );
 }

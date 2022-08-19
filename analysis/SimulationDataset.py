@@ -119,9 +119,9 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
     command += " --detectorLengthMM " + str(DetectorLengthMM)
     command += " --source " + Source
     command += " --phantomLengthMM " + str(SourceLengthMM)
-    command += "; mv hits.csv " + outputFileName
+    command += " --outputFileName " + outputFileName
     process = subprocess.Popen( command, shell=True )
-    process.wait() # Later can do some multiprocess stuff if fix the file names
+    process.wait() # Later can do some multiprocess stuff
 
     if process.returncode == 0:
       print( "Simulation complete" )

@@ -6,7 +6,8 @@
 #include "G4LogicalVolume.hh"
 #include "G4VisAttributes.hh"
 
-SiemensQuadraParameterisationBlocks::SiemensQuadraParameterisationBlocks( G4int nCopies )
+SiemensQuadraParameterisationBlocks::SiemensQuadraParameterisationBlocks( G4int nCopies, EnergyCounter * Counter ) :
+  m_counter( Counter )
 {
   // Precalculating everything avoids a memory leak
   m_positions.reserve( nCopies );
@@ -63,6 +64,9 @@ void SiemensQuadraParameterisationBlocks::ComputeTransformation( const G4int cop
     G4cerr << "Unknown copyNo for SiemensQuadraParameterisationBlocks: " << copyNo << G4endl;
     return;
   }
+
+  // Just for fun, make the crystal colour scale with total energy
+  m_visions.at( copyNo )->SetColor( 0.0, m_counter->GetEFraction( copyNo ), 0.0, 1.0 );
 
   // Return precalculated result
   physVol->SetTranslation( m_positions.at( copyNo ) );

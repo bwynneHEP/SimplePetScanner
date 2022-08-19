@@ -55,4 +55,4 @@
 /vis/ogl/set/displayListLimit 600000
 #
 # Set limit for events on screen (unlimited)
-/vis/scene/endOfEventAction accumulate -1
+/vis/scene/endOfEventAction accumulate 1#-1

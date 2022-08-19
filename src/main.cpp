@@ -22,7 +22,7 @@ int main( int argc, char* argv[] )
   G4int nEvents = 0;
   std::string detectorName = "";
   std::string sourceName = "";
-  std::string outputFileName = "";
+  std::string outputFileName = "hits.csv";
   G4double detectorLength = 0.0;
   G4double phantomLength = 0.0;
   for ( int argi = 1; argi < argc; ++argi )

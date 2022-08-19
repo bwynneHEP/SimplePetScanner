@@ -6,9 +6,8 @@
 EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName )
   : G4VSensitiveDetector( name ) // Run the constructor of the parent class
   , m_decayTimeFinder( decayTimeFinder )
+  , m_outputFile( outputFileName )
 {
-  if ( outputFileName == "" ) m_outputFile = std::ofstream( "hits.csv" );
-  else m_outputFile = std::ofstream( outputFileName );
 }
 
 EnergyCounter::~EnergyCounter()
@@ -48,6 +47,8 @@ G4bool EnergyCounter::ProcessHits( G4Step* step, G4TouchableHistory* history )
   if ( edep > 0.0 )
   {
     m_totalEnergyMap[ getID ] += edep;
+    m_integratedEnergyMap[ getID ] += edep;
+    if ( m_integratedEnergyMap[ getID ] > m_maxEnergyValue && getID % 38 != 0 ) m_maxEnergyValue = m_integratedEnergyMap[ getID ];
 
     // Average coordinates for energy deposit, weighted by its size
     m_averageTimeMap[ getID ] += ( step->GetPostStepPoint()->GetGlobalTime() - m_decayTimeFinder->GetDecayTime() ) * edep;
@@ -73,4 +74,14 @@ void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
     m_outputFile << m_averagePhiMap[ entry.first ] / entry.second << " ";
     m_outputFile << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
   }
+}
+
+G4float EnergyCounter::GetEFraction( const G4int copyNo ) const
+{
+  auto searchResult = m_integratedEnergyMap.find( copyNo );
+  if ( searchResult != m_integratedEnergyMap.end() )
+  {
+    return searchResult->second / m_maxEnergyValue;
+  }
+  return 0.0;
 }

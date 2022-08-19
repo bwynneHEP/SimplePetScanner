@@ -11,7 +11,7 @@
 #include "G4PVPlacement.hh"
 #include "G4PVParameterised.hh"
 
-G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM, std::string )
+G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM, EnergyCounter * Counter, std::string )
 {
   // Default length
   if ( LengthMM <= 0.0 )
@@ -116,7 +116,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   }
   else if ( Mode == "Block" )
   {
-    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( blocksPerRing*nRings );
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationBlocks( blocksPerRing*nRings, Counter );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing*nRings, detectorParam );
   }
   else if ( Mode == "Panel" )

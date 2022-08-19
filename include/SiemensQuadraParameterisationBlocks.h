@@ -3,6 +3,8 @@
 #ifndef SiemensQuadraParameterisationBlocks_h
 #define SiemensQuadraParameterisationBlocks_h 1
 
+#include "EnergyCounter.h"
+
 #include "G4VPVParameterisation.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4ThreeVector.hh"
@@ -12,7 +14,7 @@
 class SiemensQuadraParameterisationBlocks : public G4VPVParameterisation
 {
   public:
-    SiemensQuadraParameterisationBlocks( G4int nCopies );
+    SiemensQuadraParameterisationBlocks( G4int nCopies, EnergyCounter * Counter );
     ~SiemensQuadraParameterisationBlocks(){};
 
     void ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const override;
@@ -21,6 +23,7 @@ class SiemensQuadraParameterisationBlocks : public G4VPVParameterisation
     std::vector< G4ThreeVector > m_positions;
     std::vector< G4RotationMatrix* > m_rotations;
     std::vector< G4VisAttributes* > m_visions;
+    EnergyCounter * m_counter;
 };
 
 #endif

@@ -4,13 +4,15 @@
 #ifndef SiemensQuadraDetector_h
 #define SiemensQuadraDetector_h 1
 
+#include "EnergyCounter.h"
+
 #include "G4VPhysicalVolume.hh"
 #include "G4SystemOfUnits.hh"
 
 class SiemensQuadraDetector
 {
   public:
-    static G4VPhysicalVolume* Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM=1024, std::string Material="LSO" );
+    static G4VPhysicalVolume* Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM=1024, EnergyCounter * Counter=nullptr, std::string Material="LSO" );
     static G4int NRingsInLength( G4double const Length );
     static G4double LengthForNRings( G4int const NRings );
 
