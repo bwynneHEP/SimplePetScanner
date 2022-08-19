@@ -12,7 +12,7 @@
 class SiemensQuadraDetector
 {
   public:
-    static G4VPhysicalVolume* Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM=1024, EnergyCounter * Counter=nullptr, std::string Material="LSO" );
+    static G4VPhysicalVolume* Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, EnergyCounter * Counter, G4double LengthMM=1024, std::string Material="LSO" );
     static G4int NRingsInLength( G4double const Length );
     static G4double LengthForNRings( G4int const NRings );
 

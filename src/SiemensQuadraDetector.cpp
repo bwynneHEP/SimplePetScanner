@@ -11,7 +11,7 @@
 #include "G4PVPlacement.hh"
 #include "G4PVParameterised.hh"
 
-G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, G4double LengthMM, EnergyCounter * Counter, std::string )
+G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, EnergyCounter * Counter, G4double LengthMM, std::string Material )
 {
   // Default length
   if ( LengthMM <= 0.0 )
@@ -23,6 +23,12 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
   G4bool isotopes = false;
+
+  if ( Material != "LSO" )
+  {
+    std::cerr << "Unrecognised detector material: " << Material;
+    exit(1);
+  }
 
   // LSO
   G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );

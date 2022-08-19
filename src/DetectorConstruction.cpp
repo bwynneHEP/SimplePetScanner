@@ -38,9 +38,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
-  //G4Material* water = nistManager->FindOrBuildMaterial( "G4_WATER" );
   G4Material* polyeth = nistManager->FindOrBuildMaterial( "G4_POLYETHYLENE" );
-  //G4Material* brain = nistManager->FindOrBuildMaterial("G4_BRAIN_ICRP");
 
   // Definitions of Solids, Logical Volumes, Physical Volumes
   G4double const worldAxial = 1.5*m;
@@ -106,7 +104,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   m_energyCounter = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName );
   if ( m_detector.substr( 0, 7 ) == "Siemens" )
   {
-    SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_detectorLength, m_energyCounter );
+    SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_energyCounter, m_detectorLength );
   }
   else if ( m_detector.substr( 0, 8 ) == "Explorer" )
   {
