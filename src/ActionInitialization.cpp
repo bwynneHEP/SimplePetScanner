@@ -28,6 +28,11 @@ void ActionInitialization::Build() const
     {
       phantomLength = m_phantomLength * mm / 2.0; // half-lengths
     }
+    else if ( m_phantomLength == 0.0 )
+    {
+      std::cerr << "Cannot use a zero-length phantom as a source" << std::endl;
+      exit(1);
+    }
     this->SetUserAction( new LinearSourceAction( -phantomLength, phantomLength, m_sourceName.substr( 6 ) ) );
   }
   else if ( m_sourceName == "Siemens" )

@@ -21,9 +21,9 @@ DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFin
   : G4VUserDetectorConstruction()
   , m_decayTimeFinder( decayTimeFinder )
   , m_detector( detector )
+  , m_outputFileName( outputFileName )
   , m_detectorLength( detectorLength )
   , m_phantomLength( phantomLength )
-  , m_outputFileName( outputFileName )
 {
 }
 
@@ -45,7 +45,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4double const worldTrans = 1.0*m;
   G4double const phantomRadius = 20.3*cm / 2.0;
   G4double phantomAxial = 35.0*cm;
-  if ( m_phantomLength > 0.0 ) phantomAxial = m_phantomLength * mm / 2.0; // half-lengths
+  if ( m_phantomLength >= 0.0 ) phantomAxial = m_phantomLength * mm / 2.0; // half-lengths
 
   // WORLD: Solid (cube)
   G4GeometryManager::GetInstance()->SetWorldMaximumExtent( worldAxial );
@@ -73,32 +73,34 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  0,               // copy number
                  true );          // checking overlaps
 
-  // PHANTOM: Solid (cylinder)
-  G4Tubs* phantomS = new G4Tubs(
-                 "Phantom",       // its name
-                 0.0,             // inner radius 0, so it's a solid cylinder (not a hollow tube)
-                 phantomRadius,   // outer radius
-                 phantomAxial,    // how long (z axis, remember it's a half-length)
-                 0.0*deg,         // starting angle
-                 360.0*deg );     // ending angle (i.e. it's a full circle)
+  if ( phantomAxial > 0.0 ) {
+    // PHANTOM: Solid (cylinder)
+    G4Tubs* phantomS = new G4Tubs(
+                   "Phantom",       // its name
+                   0.0,             // inner radius 0, so it's a solid cylinder (not a hollow tube)
+                   phantomRadius,   // outer radius
+                   phantomAxial,    // how long (z axis, remember it's a half-length)
+                   0.0*deg,         // starting angle
+                   360.0*deg );     // ending angle (i.e. it's a full circle)
 
-  // PHANTOM: Logical volume (how to treat it)
-  G4LogicalVolume* phantomLV = new G4LogicalVolume(
-                 phantomS,        // its solid
-                 polyeth,         // its material
-                 "Phantom",       // its name
-                 0, 0, 0 );       // Modifiers we don't use
+    // PHANTOM: Logical volume (how to treat it)
+    G4LogicalVolume* phantomLV = new G4LogicalVolume(
+                   phantomS,        // its solid
+                   polyeth,         // its material
+                   "Phantom",       // its name
+                   0, 0, 0 );       // Modifiers we don't use
 
-  // PHANTOM: Physical volume (where is it)
-  /*G4VPhysicalVolume* phantomPV =*/ new G4PVPlacement(
-                 0,               // no rotation
-                 G4ThreeVector(0.0, 0.0, 0.0), // in the centre
-                 phantomLV,       // its logical volume
-                 "Phantom",       // its name
-                 worldLV,         // its mother volume
-                 false,           // no boolean operations
-                 0,               // copy number
-                 true );          // checking overlaps
+    // PHANTOM: Physical volume (where is it)
+    /*G4VPhysicalVolume* phantomPV =*/ new G4PVPlacement(
+                   0,               // no rotation
+                   G4ThreeVector(0.0, 0.0, 0.0), // in the centre
+                   phantomLV,       // its logical volume
+                   "Phantom",       // its name
+                   worldLV,         // its mother volume
+                   false,           // no boolean operations
+                   0,               // copy number
+                   true );          // checking overlaps
+  }
 
   // DETECTOR: separate class
   m_energyCounter = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName );

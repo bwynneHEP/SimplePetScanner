@@ -23,8 +23,8 @@ int main( int argc, char* argv[] )
   std::string detectorName = "";
   std::string sourceName = "";
   std::string outputFileName = "hits.csv";
-  G4double detectorLength = 0.0;
-  G4double phantomLength = 0.0;
+  G4double detectorLength = -1.0;
+  G4double phantomLength = -1.0;
   for ( int argi = 1; argi < argc; ++argi )
   {
     std::string argument = argv[ argi ];
