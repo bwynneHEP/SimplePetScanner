@@ -20,6 +20,7 @@ int main( int argc, char* argv[] )
   // Parse command-line arguments
   G4bool useGUI = false;
   G4int nEvents = 0;
+  G4int randomSeed = 1234;
   std::string detectorName = "";
   std::string sourceName = "";
   std::string outputFileName = "hits.csv";
@@ -101,6 +102,15 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--randomSeed" )
+    {
+      if ( nextArgument.size() ) randomSeed = nextInteger;
+      else
+      {
+        std::cerr << "Did not find random seed to use" << std::endl;
+        return 1;
+      }
+    }
     else
     {
       std::cerr << "Unrecognised argument: " << argument << std::endl;
@@ -110,7 +120,7 @@ int main( int argc, char* argv[] )
 
   // Set up the random number generator
   G4Random::setTheEngine( new CLHEP::RanecuEngine );
-  G4Random::setTheSeed( 1234 );
+  G4Random::setTheSeed( randomSeed );
 
   // Construct the default run manager
   G4RunManager* runManager = new G4RunManager();
