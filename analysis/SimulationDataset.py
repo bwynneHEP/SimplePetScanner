@@ -14,7 +14,7 @@ import os
 
 class SimulationDataset:
 
-  def __init__( self, InputPath, TotalDecays, EnergyMin, EnergyMax ):
+  def __init__( self, InputPath, TotalDecays, EnergyMin, EnergyMax, CoincidenceWindow=0.0 ):
     self.inputData = {}
     self.unusedEvents = []
     self.usedEvents = []
@@ -22,6 +22,8 @@ class SimulationDataset:
 
     eventCount = 0.0
     hitCount = 0.0
+    currentEvent = -1
+    eventStartTime = 0.0
 
     # Parse input
     inputFile = open( InputPath )
@@ -31,11 +33,27 @@ class SimulationDataset:
       eventID = int( splitLine[0] )
       moduleID = int( splitLine[1] )
       energyKeV = float( splitLine[2] )
+      timeNS = float( splitLine[3] )
+
+      # If the file is ordered (it should be) then events will be contiguous
+      if eventID == currentEvent:
+        # Find the earliest time in the current event
+        eventStartTime = min( eventStartTime, timeNS )
+      else:
+        # Apply the time cut to the old event
+        if CoincidenceWindow > 0.0:
+          for hit in self.inputData[ currentEvent ]:
+            if hit[2] > eventStartTime + CoincidenceWindow:
+              self.inputData[ currentEvent ].remove( hit )
+
+        # Start a new event
+        eventStartTime = timeNS
+        currentEvent = eventID
 
       # Do the energy window on loading to keep RAM down
       if energyKeV >= EnergyMin and energyKeV <= EnergyMax:
-        wholeEvent = [ moduleID, energyKeV ]
-        for i in range( 3, len( splitLine ) ):
+        wholeEvent = [ moduleID, energyKeV, timeNS ]
+        for i in range( 4, len( splitLine ) ):
           wholeEvent.append( float( splitLine[i] ) )
 
         # Multiple lines (hits) can go into a single event
