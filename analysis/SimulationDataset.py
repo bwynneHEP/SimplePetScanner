@@ -20,6 +20,7 @@ class SimulationDataset:
     self.usedEvents = []
     self.totalDecays = TotalDecays
 
+    CoincidenceWindow *= 1E9 #nanoseconds
     eventCount = 0.0
     hitCount = 0.0
     currentEvent = -1
@@ -41,7 +42,7 @@ class SimulationDataset:
         eventStartTime = min( eventStartTime, timeNS )
       else:
         # Apply the time cut to the old event
-        if CoincidenceWindow > 0.0:
+        if CoincidenceWindow > 0.0 and currentEvent in self.inputData:
           for hit in self.inputData[ currentEvent ]:
             if hit[2] > eventStartTime + CoincidenceWindow:
               self.inputData[ currentEvent ].remove( hit )
@@ -66,7 +67,10 @@ class SimulationDataset:
 
     inputFile.close()
 
-    print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( hitCount / eventCount ) + " hits/event" )
+    if eventCount > 0:
+      print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( hitCount / eventCount ) + " hits/event" )
+    else:
+      print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated)" )
 
     # Allow for decays that don't enter the energy window
     for i in range( self.totalDecays ):
@@ -125,7 +129,7 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, Seed=1234 ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, Seed=1234, CoincidenceWindow=0.0 ):
 
   # Phantom length affects the attenuating material, so include it even if source is detector
   outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm."
@@ -152,4 +156,4 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
       print( "Simulation failed with return code: ", process.returncode )
       return None
 
-  return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax )
+  return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, CoincidenceWindow )
