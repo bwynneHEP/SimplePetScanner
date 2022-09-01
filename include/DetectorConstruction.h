@@ -11,7 +11,7 @@
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength, std::string outputFileName );
+    DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength, std::string outputFileName, std::string material );
     ~DetectorConstruction() override;
 
     G4VPhysicalVolume* Construct() override;
@@ -25,6 +25,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     EnergyCounter * m_energyCounter;
     std::string m_detector;
     std::string m_outputFileName;
+    std::string m_material;
     G4double m_detectorLength;
     G4double m_phantomLength;
 };

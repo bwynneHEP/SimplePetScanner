@@ -24,21 +24,40 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
   G4bool isotopes = false;
 
-  if ( Material != "LSO" )
+  G4Material* crystal = nullptr;
+  if ( Material == "LSO" || Material == "" ) //default
   {
-    std::cerr << "Unrecognised detector material: " << Material;
+    G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );
+    G4Element* Si = nistManager->FindOrBuildElement( "Si", isotopes );
+    G4Element* Lu = nistManager->FindOrBuildElement( "Lu", isotopes );
+
+    G4Material* LSO = new G4Material( "Lu2SiO5", 7.4*g/cm3, 3 );
+    LSO->AddElement( Lu, 2 );
+    LSO->AddElement( Si, 1 );
+    LSO->AddElement( O , 5 );
+
+    crystal = LSO;
+  }
+  else if ( Material == "LYSO" )
+  {
+    G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );
+    G4Element* Si = nistManager->FindOrBuildElement( "Si", isotopes );
+    G4Element* Lu = nistManager->FindOrBuildElement( "Lu", isotopes );
+    G4Element* Y  = nistManager->FindOrBuildElement( "Y" , isotopes );
+
+    G4Material* LYSO = new G4Material( "LYSO", 7.1*g/cm3, 4 );
+    LYSO->AddElement( Lu, 71.447 * perCent );
+    LYSO->AddElement( Y,  4.034  * perCent );
+    LYSO->AddElement( Si, 6.371  * perCent );
+    LYSO->AddElement( O,  18.148 * perCent );
+
+    crystal = LYSO;
+  }
+  else
+  {
+    std::cerr << "Unrecognised detector material: " << Material << std::endl;
     exit(1);
   }
-
-  // LSO
-  G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );
-  G4Element* Si = nistManager->FindOrBuildElement( "Si", isotopes );
-  G4Element* Lu = nistManager->FindOrBuildElement( "Lu", isotopes );
-
-  G4Material* LSO = new G4Material( "Lu2SiO5", 7.4*g/cm3, 3 );
-  LSO->AddElement( Lu, 2 );
-  LSO->AddElement( Si, 1 );
-  LSO->AddElement( O , 5 );
 
   G4int nRings = NRingsInLength( LengthMM );
   if ( nRings == 32 )
@@ -109,7 +128,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   // DETECTOR: Logical volume (how to treat it)
   G4LogicalVolume* detectorLV = new G4LogicalVolume(
                  detectorS,         // its solid
-                 LSO,               // its material
+                 crystal,           // its material
                  Name,              // its name
                  0, 0, 0 );         // Modifiers we don't use
 
