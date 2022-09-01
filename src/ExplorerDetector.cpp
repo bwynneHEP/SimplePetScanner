@@ -38,7 +38,7 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
 
     crystal = LSO;
   }
-  else if ( Material == "LYSO" )
+  else if ( Material == "LYSO" || Material == "" ) //default
   {
     // exact composition for EXPLORER from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6354919/
     G4Element* O  = nistManager->FindOrBuildElement( "O" , isotopes );
