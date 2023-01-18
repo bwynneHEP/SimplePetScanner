@@ -129,10 +129,12 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, Seed=1234, CoincidenceWindow=0.0 ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, Seed=1234, CoincidenceWindow=0.0, DetectorMaterial="" ):
 
   # Phantom length affects the attenuating material, so include it even if source is detector
   outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm."
+  if DetectorMaterial != "":
+    outputFileName += DetectorMaterial + "."
   outputFileName += Source + "." + str(SourceLengthMM) + "mm." + str(Seed) + ".csv"
 
   # Check if file already present (in which case assume it's re-usable)
@@ -147,6 +149,8 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
     command += " --phantomLengthMM " + str(SourceLengthMM)
     command += " --outputFileName " + outputFileName
     command += " --randomSeed " + str(Seed)
+    if DetectorMaterial != "":
+      command += " --detectorMaterial " + DetectorMaterial
     process = subprocess.Popen( command, shell=True )
     process.wait() # Later can do some multiprocess stuff
 
