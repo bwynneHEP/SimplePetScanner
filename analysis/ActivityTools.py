@@ -107,18 +107,19 @@ def NECRFromHistogram( bins, values, SimulationWindow ):
     centralBackground = ( lowValue + highValue ) / 2.0
     centralBackground *= ( highBin - lowBin ) # number of bins in the region
     
-    true = centralTotal - centralBackground
-    rPlusS = histogramTotal - true
+    trues = centralTotal - centralBackground
+    rPlusS = histogramTotal - trues
     necr = 0.0
     if histogramTotal > 0.0:
-        necr = true * true / histogramTotal
-    
-    return necr/SimulationWindow, true/SimulationWindow, rPlusS/SimulationWindow
+        necr = trues * trues / histogramTotal
+
+    return necr/SimulationWindow, trues/SimulationWindow, rPlusS/SimulationWindow
+
 
 import matplotlib.pyplot as mpl
 
 # base the coincidence window on whether the decay actually triggers the detector
-def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
+def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0, UsePhotonTime=False ):
 
     hitRadii = []
     trueEvents = 0
@@ -147,12 +148,15 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
         event += DecayData[ minChannel ].SampleOneEvent()
         nextTimes[ minChannel ] += DeltaT( DecayRates[ minChannel ] )
 
-        # TODO investigate the event time itself (column index 2)
-        # probably doesn't matter, we're just trying to use random decays
+        # Calculate the times the photons actually reach the detector
+        detectionTimes = []
+        if UsePhotonTime:
+            for photon in event:
+                detectionTimes.append( time + (photon[2]*1E-9) )
 
         # Don't start a coincidence window if the event didn't pass cuts
         if len( event ) == 0:
-          continue
+            continue
 
         # Build event from all decays in the window
         for channelIndex, nextTime in enumerate( nextTimes ):
@@ -160,7 +164,11 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
             while nextTime <= time + CoincidenceWindow and nextTime <= SimulationWindow:
 
                 # Store the time point
-                event += DecayData[ channelIndex ].SampleOneEvent()
+                newDecay = DecayData[ channelIndex ].SampleOneEvent()
+                event += newDecay
+                if UsePhotonTime:
+                    for photon in newDecay:
+                        detectionTimes.append( nextTime + (photon[2]*1E-9) )
 
                 # Update to next time point
                 nextTime += DeltaT( DecayRates[ channelIndex ] )
@@ -171,6 +179,17 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
         # The last entry is empty, because all times now past end
         if len( event ) == 0:
             continue
+
+        # Trim photons that reach the detector too late
+        # NOTE this is not an exact treatment: these are still detectable photons
+        # They should ideally be recycled to create a new coincidence window
+        if UsePhotonTime:
+            firstDetection = min( detectionTimes )
+            trimmedEvent = []
+            for i, photon in enumerate( event ):
+                if detectionTimes[i] < firstDetecton + CoincidenceWindow:
+                    trimmedEvent += photon
+            event = trimmedEvent
 
         # Classify the events
         if TwoHitEvent( event, DetectorRadius, ZMin, ZMax ):
@@ -197,4 +216,3 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
 
     y, x, patches = mpl.hist( hitRadii, bins=26, range=[-130, 130] )
     return NECRFromHistogram( x, y, SimulationWindow )
-
