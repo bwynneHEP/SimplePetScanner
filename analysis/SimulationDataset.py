@@ -76,7 +76,7 @@ class SimulationDataset:
     for i in range( self.totalDecays ):
       self.unusedEvents.append( i )
 
-  def SampleOneEvent( self ):
+  def SampleOneEvent( self, EnergyResolution=0.0, TimeResolution=0.0 ):
 
     # Check if we have any events left
     if len( self.unusedEvents ) == 0:
@@ -87,7 +87,19 @@ class SimulationDataset:
     eventID = self.unusedEvents.pop(-1)
     self.usedEvents.append( eventID )
     if eventID in self.inputData:
-      return self.inputData[ eventID ]
+      if EnergyResolution > 0.0 or TimeResolution > 0.0:
+
+        modifiedEvent = []
+        for photon in self.inputData[ eventID ]:
+
+          newEnergy = photon[1] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
+          newTime = photon[2] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
+          modifiedEvent += [ photon[0], newEnergy, newTime, photon[3], photon[4], photon[5] ]
+
+        return modifiedEvent
+
+      else:
+        return self.inputData[ eventID ]
     else:
       return []
 
