@@ -11,6 +11,7 @@ import random
 import math
 import subprocess
 import os
+import numpy as np
 
 class SimulationDataset:
 
@@ -94,7 +95,7 @@ class SimulationDataset:
 
           newEnergy = photon[1] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
           newTime = photon[2] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
-          modifiedEvent += [ photon[0], newEnergy, newTime, photon[3], photon[4], photon[5] ]
+          modifiedEvent += [[ photon[0], newEnergy, newTime, photon[3], photon[4], photon[5] ]]
 
         return modifiedEvent
 
