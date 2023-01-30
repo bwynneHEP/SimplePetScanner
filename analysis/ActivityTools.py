@@ -119,7 +119,7 @@ def NECRFromHistogram( bins, values, SimulationWindow ):
 import matplotlib.pyplot as mpl
 
 # base the coincidence window on whether the decay actually triggers the detector
-def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0, UsePhotonTime=False ):
+def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0, UsePhotonTime=False, EnergyResolution=0.0, TimeResolution=0.0 ):
 
     hitRadii = []
     trueEvents = 0
@@ -145,7 +145,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
         time = min( nextTimes )
         minChannel = np.argmin( nextTimes )
         event = [] # Have to start empty, then add. Otherwise end up taking a reference and bad things happen
-        event += DecayData[ minChannel ].SampleOneEvent()
+        event += DecayData[ minChannel ].SampleOneEvent( EnergyResolution, TimeResolution )
         nextTimes[ minChannel ] += DeltaT( DecayRates[ minChannel ] )
 
         # Calculate the times the photons actually reach the detector
@@ -164,7 +164,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
             while nextTime <= time + CoincidenceWindow and nextTime <= SimulationWindow:
 
                 # Store the time point
-                newDecay = DecayData[ channelIndex ].SampleOneEvent()
+                newDecay = DecayData[ channelIndex ].SampleOneEvent( EnergyResolution, TimeResolution )
                 event += newDecay
                 if UsePhotonTime:
                     for photon in newDecay:
@@ -187,8 +187,8 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
             firstDetection = min( detectionTimes )
             trimmedEvent = []
             for i, photon in enumerate( event ):
-                if detectionTimes[i] < firstDetecton + CoincidenceWindow:
-                    trimmedEvent += photon
+                if detectionTimes[i] < firstDetection + CoincidenceWindow:
+                    trimmedEvent += [photon]
             event = trimmedEvent
 
         # Classify the events
