@@ -125,6 +125,11 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
     trueEvents = 0
     allEvents = 0
     eventsOutsideMid = 0
+    totalPhotons = 0
+    usedPhotons = 0
+    recycledPhotons = 0
+    windowsFromRecycled = 0
+    recyclePhotons = []
 
     # Set the first event in each timeline
     nextTimes = []
@@ -143,10 +148,23 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
 
         # Start the window at the earliest event
         time = min( nextTimes )
-        minChannel = np.argmin( nextTimes )
         event = [] # Have to start empty, then add. Otherwise end up taking a reference and bad things happen
-        event += DecayData[ minChannel ].SampleOneEvent( EnergyResolution, TimeResolution )
-        nextTimes[ minChannel ] += DeltaT( DecayRates[ minChannel ] )
+
+        # Fill the event with first photon
+        if UsePhotonTime and len(recyclePhotons) > 0:
+            recyclePhotons = sorted( recyclePhotons )
+            firstRecycleTime, firstRecyclePhoton = recyclePhotons[0]
+            if firstRecycleTime < time:
+                time = firstRecycleTime
+                event += [firstRecyclePhoton]
+                recyclePhotons.remove((firstRecycleTime, firstRecyclePhoton))
+                windowsFromRecycled += 1
+
+        # Without a recycled photon, generate a new one
+        if len(event) == 0:
+            minChannel = np.argmin( nextTimes )
+            event += DecayData[ minChannel ].SampleOneEvent( EnergyResolution, TimeResolution )
+            nextTimes[ minChannel ] += DeltaT( DecayRates[ minChannel ] )
 
         # Calculate the times the photons actually reach the detector
         detectionTimes = []
@@ -181,14 +199,28 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
             continue
 
         # Trim photons that reach the detector too late
-        # NOTE this is not an exact treatment: these are still detectable photons
-        # They should ideally be recycled to create a new coincidence window
         if UsePhotonTime:
             firstDetection = min( detectionTimes )
             trimmedEvent = []
             for i, photon in enumerate( event ):
+                totalPhotons += 1
                 if detectionTimes[i] < firstDetection + CoincidenceWindow:
                     trimmedEvent += [photon]
+                    usedPhotons += 1
+                else:
+                    recyclePhotons.append((detectionTimes[i], photon))
+
+            #Try recycling
+            for detectionTime, photon in recyclePhotons:
+                if detectionTime < time:
+                    # We have passed this photon in the timeline, so get rid of it
+                    # In theory this shouldn't happen
+                    recyclePhotons.remove((detectionTime, photon))
+                elif detectionTime >= time and detectionTime <= time + CoincidenceWindow:
+                    trimmedEvent += [photon]
+                    recyclePhotons.remove((detectionTime, photon))
+                    recycledPhotons += 1
+
             event = trimmedEvent
 
         # Classify the events
@@ -214,5 +246,10 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
     # Return the hit radii for a better NECR calculation later
     #return necr/SimulationWindow, trueEvents/SimulationWindow, randomPlusScatter/SimulationWindow, hitRadii
 
+    #if UsePhotonTime:
+    #    lostPhotons = totalPhotons - usedPhotons
+    #    print( str( lostPhotons ) + " photons lost of " + str( totalPhotons ) + " total (" + str( lostPhotons * 100 / totalPhotons ) + "%) and " + str(recycledPhotons) + " recycled, " + str(windowsFromRecycled) + " recycled to new window" )
+
     y, x, patches = mpl.hist( hitRadii, bins=26, range=[-130, 130] )
+    mpl.clf()
     return NECRFromHistogram( x, y, SimulationWindow )
