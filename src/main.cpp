@@ -14,9 +14,6 @@
 
 int main( int argc, char* argv[] )
 {
-  // Start interactive session using the command line arguments
-  G4UIExecutive* ui = new G4UIExecutive( argc, argv );
-
   // Parse command-line arguments
   G4bool useGUI = false;
   G4int nEvents = 0;
@@ -164,8 +161,12 @@ int main( int argc, char* argv[] )
   if ( useGUI ) UImanager->ApplyCommand( "/control/execute vis.mac" );
   UImanager->ApplyCommand( "/control/execute run.mac" );
   UImanager->ApplyCommand( "/run/beamOn " + std::to_string( nEvents ) ); // even if it's zero, useful to initialise physics
-  if ( useGUI ) ui->SessionStart();
-  delete ui;
+  if ( useGUI )
+  {
+    G4UIExecutive* ui = new G4UIExecutive( argc, argv );
+    ui->SessionStart();
+    delete ui;
+  }
 
   // Job termination
   // Free the store: user actions, physics_list and detector_description are
