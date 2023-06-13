@@ -147,23 +147,20 @@ int main( int argc, char* argv[] )
   DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, detectorMaterial );
   runManager->SetUserInitialization( detector );
 
+  // Set up the macros
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
+  UImanager->ApplyCommand( "/run/initialize" );
+  UImanager->ApplyCommand( "/control/execute run.mac" );
+  UImanager->ApplyCommand( "/run/beamOn " + std::to_string( nEvents ) ); // even if it's zero, useful to initialise physics
+
+  // Set up GUI
   G4VisManager* visManager = nullptr;
   if ( useGUI )
   {
-    // Set up display
+    G4UIExecutive* ui = new G4UIExecutive( argc, argv );
     visManager = new G4VisExecutive();
     visManager->Initialize();
-  }
-
-  // Set up the command line interface
-  G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  UImanager->ApplyCommand( "/run/initialize" );
-  if ( useGUI ) UImanager->ApplyCommand( "/control/execute vis.mac" );
-  UImanager->ApplyCommand( "/control/execute run.mac" );
-  UImanager->ApplyCommand( "/run/beamOn " + std::to_string( nEvents ) ); // even if it's zero, useful to initialise physics
-  if ( useGUI )
-  {
-    G4UIExecutive* ui = new G4UIExecutive( argc, argv );
+    UImanager->ApplyCommand( "/control/execute vis.mac" );
     ui->SessionStart();
     delete ui;
   }
