@@ -27,6 +27,8 @@ G4ClassificationOfNewTrack DecayTimeFinderAction::ClassifyNewTrack( const G4Trac
   {
     m_firstDecay = track->GetGlobalTime();
     //std::cout << "SET DECAY TIME" << std::endl;
+    //std::cout << track->GetPosition().x() << ", " << track->GetPosition().y() << ", " << track->GetPosition().z() << std::endl;
+    m_decayZ = track->GetPosition().z();
   }
 
   // Kill anything that took too long

@@ -17,9 +17,14 @@ class DecayTimeFinderAction : public G4UserStackingAction
     {
       return m_firstDecay;
     }
+    G4double GetDecayZ() const
+    {
+      return m_decayZ;
+    }
 
   private:
     G4double m_firstDecay = 0.0;
+    G4double m_decayZ = 0.0;
 };
 
 #endif

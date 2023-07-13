@@ -72,7 +72,8 @@ void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
     m_outputFile << m_averageTimeMap[ entry.first ] / ( entry.second * ns ) << " ";
     m_outputFile << m_averageRMap[ entry.first ] / ( entry.second * mm ) << " ";
     m_outputFile << m_averagePhiMap[ entry.first ] / entry.second << " ";
-    m_outputFile << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
+    m_outputFile << m_averageZMap[ entry.first ] / ( entry.second * mm ) << " ";// << std::endl;
+    m_outputFile << m_decayTimeFinder->GetDecayZ() / mm << std::endl;
   }
 }
 
