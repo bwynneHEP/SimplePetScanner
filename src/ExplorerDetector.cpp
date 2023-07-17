@@ -54,11 +54,34 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
 
     crystal = LYSO;
   }
+  else if ( Material == "NaI" )
+  {
+    //Hanna: material available via nistManager, no need to define
+    G4Material* NaI = nistManager->FindOrBuildMaterial("G4_SODIUM_IODIDE");
+    
+    crystal = NaI;
+  }
+  else if ( Material == "BGO" )
+  {
+    //Hanna: material available via nistManager, no need to define
+    G4Material* BGO = nistManager->FindOrBuildMaterial("G4_BGO");
+
+    crystal = BGO;
+  }
+  else if (Material == "CsF")
+  {
+    //Hanna: material available via nistManager, no need to define
+    G4Material* CsF = nistManager->FindOrBuildMaterial("G4_CESIUM_FLUORIDE");
+
+    crystal = CsF;
+  }
   else
   {
     std::cerr << "Unrecognised detector material: " << Material << std::endl;
     exit(1);
   }
+
+  std::cout << "Selected detector material: " << crystal->GetName() << std::endl;
 
   G4int nRings = NRingsInLength( LengthMM );
   if ( nRings == 8 )
