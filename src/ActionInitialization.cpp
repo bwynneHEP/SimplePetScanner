@@ -44,14 +44,8 @@ void ActionInitialization::Build() const
       detectorLength = SiemensQuadraDetector::LengthForNRings( SiemensQuadraDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
       detectorLength /= 2.0; // half-lengths
     }
-    if (m_detectorMaterial == "NaI")
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "NaI", 400.0*mm, 420.0*mm ) );
-    else if (m_detectorMaterial == "BGO")
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "BGO", 400.0*mm, 420.0*mm ) );
-    else if (m_detectorMaterial == "CsF")
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "CsF", 400.0*mm, 420.0*mm ) );
-    else 
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LSO", 400.0*mm, 420.0*mm ) );  
+
+    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, m_detectorMaterial, 400.0*mm, 420.0*mm ) );
   }
   else if ( m_sourceName == "Explorer" )
   {
@@ -61,14 +55,8 @@ void ActionInitialization::Build() const
       detectorLength = ExplorerDetector::LengthForNRings( ExplorerDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
       detectorLength /= 2.0; // half-lengths
     }
-    if (m_detectorMaterial == "NaI")
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "NaI", 393*mm, 411.1*mm ) );
-    else if (m_detectorMaterial == "BGO")
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "BGO", 393*mm, 411.1*mm ) );
-    else if (m_detectorMaterial == "CsF")
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "CsF", 393*mm, 411.1*mm ) );
-    else 
-      this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LYSO", 393*mm, 411.1*mm ) );
+
+    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, m_detectorMaterial, 393*mm, 411.1*mm ) );
   }
   else
   {
