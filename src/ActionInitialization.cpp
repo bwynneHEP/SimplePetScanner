@@ -22,7 +22,6 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
-  // std::cout << "Source name: " << m_sourceName << std::endl;
   if ( m_sourceName.substr( 0, 6 ) == "Linear" )
   {
     G4double phantomLength = 350.0*mm;
