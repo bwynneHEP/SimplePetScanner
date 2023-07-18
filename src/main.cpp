@@ -5,6 +5,8 @@
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
 #include "QGSP_BERT_HP.hh"
+#include "LBE.hh"
+#include "QBBC.hh"
 #include "G4StepLimiterPhysics.hh"
 #include "G4RadioactiveDecayPhysics.hh"
 #include "Randomize.hh"
@@ -133,7 +135,10 @@ int main( int argc, char* argv[] )
   G4RunManager* runManager = new G4RunManager();
 
   // Set up physics processes
-  G4VModularPhysicsList* physicsList = new QGSP_BERT_HP();
+  // G4VModularPhysicsList* physicsList = new QGSP_BERT_HP();
+  // G4VModularPhysicsList* physicsList = new LBE();
+  // Hanna: Based on initial studies chose to use QBBC 
+  G4VModularPhysicsList* physicsList = new QBBC();
   physicsList->RegisterPhysics( new G4StepLimiterPhysics() );
   physicsList->RegisterPhysics( new G4RadioactiveDecayPhysics() ); // For the tracers
   runManager->SetUserInitialization( physicsList );
