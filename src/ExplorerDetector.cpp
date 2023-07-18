@@ -60,7 +60,7 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
 
   if (auto search = materialMap.find(Material); search != materialMap.end())
         crystal = search->second;
-  else if (Material == "")
+  else if (Material.empty())
     crystal = LYSO;
   else {
     std::cerr << "Unrecognised detector material: " << Material << std::endl;
