@@ -145,7 +145,7 @@ int main( int argc, char* argv[] )
 
   // Set user action classes
   DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction();
-  ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName, detectorLength, phantomLength );
+  ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName, detectorLength, phantomLength, detectorMaterial );
   runManager->SetUserInitialization( actions );
 
   // Set up detector

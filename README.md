@@ -44,7 +44,7 @@ Each detector geometry will take their default length unless this argument is sp
 
 ### --detectorMaterial
 Set the scintillator material used for the detector crystals.
-LSO and LYSO are supported, with the precise LYSO composition corresponding to the Explorer detector.
+LSO, LYSO (with the precise LYSO composition corresponding to the Explorer detector), NaI, BGO and CsF are supported.
 Each detector geometry will use their default material unless this argument is specified.
 
 ### --source

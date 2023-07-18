@@ -6,12 +6,13 @@
 
 #include "G4SystemOfUnits.hh"
 
-ActionInitialization::ActionInitialization( DecayTimeFinderAction * decayTimeFinder, std::string sourceName, G4double detectorLength, G4double phantomLength )
+ActionInitialization::ActionInitialization( DecayTimeFinderAction * decayTimeFinder, std::string sourceName, G4double detectorLength, G4double phantomLength, std::string detectorMaterial)
   : G4VUserActionInitialization()
   , m_decayTimeFinder( decayTimeFinder )
   , m_sourceName( sourceName )
   , m_detectorLength( detectorLength )
   , m_phantomLength( phantomLength )
+  , m_detectorMaterial( detectorMaterial )
 {
 }
 
@@ -43,7 +44,8 @@ void ActionInitialization::Build() const
       detectorLength = SiemensQuadraDetector::LengthForNRings( SiemensQuadraDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
       detectorLength /= 2.0; // half-lengths
     }
-    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LSO", 400.0*mm, 420.0*mm ) );
+
+    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, m_detectorMaterial, 400.0*mm, 420.0*mm ) );
   }
   else if ( m_sourceName == "Explorer" )
   {
@@ -53,7 +55,8 @@ void ActionInitialization::Build() const
       detectorLength = ExplorerDetector::LengthForNRings( ExplorerDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
       detectorLength /= 2.0; // half-lengths
     }
-    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, "LYSO", 393*mm, 411.1*mm ) );
+
+    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, m_detectorMaterial, 393*mm, 411.1*mm ) );
   }
   else
   {
