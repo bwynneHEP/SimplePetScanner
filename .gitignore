@@ -1,0 +1,4 @@
+*.pdf
+hits*.csv
+*.txt
+build/
