@@ -1,19 +1,24 @@
 import math
 
+import PhysicsConstants as PC
+
 def DetectorRadius():
   return 393
 
 def CrystalVolume():
   return 0.276 * 0.276 * 1.81
 
-def CrystalMass():
-  return CrystalVolume() * 7.1
+def CrystalMass( DetectorMaterial ):
+  varName = f'density_{DetectorMaterial}'
+  if varName not in PC.__dict__:
+    raise RuntimeError(f'{varName} does not exist in PhysicsConstants. Wrong material name?')
+  return CrystalVolume() * eval(f'PC.{varName}')
 
 def DetectorVolume():
   return CrystalVolume() * 564480.0
 
-def DetectorMass():
-  return CrystalMass() * 564480.0
+def DetectorMass( DetectorMaterial ):
+  return CrystalMass(DetectorMaterial) * 564480.0
 
 def DetectorDiscreteLength( Length ):
   nRings = float( math.ceil( Length / 231.84 ) )
@@ -23,9 +28,9 @@ def DetectorVolumeLength( Length ):
   nRings = float( math.ceil( Length / 231.84 ) )
   return CrystalVolume() * 70560.0 * nRings
 
-def DetectorMassLength( Length ):
+def DetectorMassLength( Length, DetectorMaterial ):
   nRings = float( math.ceil( Length / 231.84 ) )
-  return CrystalMass() * 70560.0 * nRings
+  return CrystalMass(DetectorMaterial) * 70560.0 * nRings
 
 def LSOunitsInMass( Mass ):
   yFraction = 0.2

@@ -1,24 +1,29 @@
 import math
 
+import PhysicsConstants as PC
+
 def DetectorRadius():
   return 400 # 82cm radius - 1cm crystal half-depth. Maybe 82 should be inner radius and need to adjust simulation?
 
 def CrystalVolume():
   return 0.32 * 0.32 * 2.0
 
-def CrystalMass():
-  return CrystalVolume() * 7.4
+def CrystalMass( DetectorMaterial ):
+  varName = f'density_{DetectorMaterial}'
+  if varName not in PC.__dict__:
+    raise RuntimeError(f'{varName} does not exist in PhysicsConstants. Wrong material name?')
+  return CrystalVolume() * eval(f'PC.{varName}')
 
-def DetectorMass():
-  return CrystalMass() * 243200.0
+def DetectorMass( DetectorMaterial ):
+  return CrystalMass(DetectorMaterial) * 243200.0
 
 def DetectorDiscreteLength( Length ):
   nRings = float( math.ceil( Length / 32.0 ) )
   return nRings * 32.0
 
-def DetectorMassLength( Length ):
+def DetectorMassLength( Length, DetectorMaterial ):
   nRings = float( math.ceil( Length / 32.0 ) )
-  return CrystalMass() * 7600.0 * nRings
+  return CrystalMass(DetectorMaterial) * 7600.0 * nRings
 
 def LSOunitsInMass( Mass ):
   LSOmoleGram = (2.0 * 175.0) + 28.1 + (5.0 * 16.0) #Lu 2 si 1 O 5
