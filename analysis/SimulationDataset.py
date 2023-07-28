@@ -146,7 +146,8 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, Seed=1234, CoincidenceWindow=0.0, DetectorMaterial="" ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, CoincidenceWindow=0.0 ):
+  print("DetectorMaterial in createdataset: ", DetectorMaterial)
   # Phantom length affects the attenuating material, so include it even if source is detector
   outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm."
   # Hanna: printing detector name commented out to have common naming convention
@@ -168,9 +169,9 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
     command += " --randomSeed " + str(Seed)
     if DetectorMaterial != "":
       command += " --detectorMaterial " + DetectorMaterial
+    print("Running command = ", command)
     process = subprocess.Popen( command, shell=True )
     process.wait() # Later can do some multiprocess stuff
-
     if process.returncode == 0:
       print( "Simulation complete" )
     else:

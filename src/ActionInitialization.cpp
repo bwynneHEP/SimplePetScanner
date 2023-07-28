@@ -44,7 +44,7 @@ void ActionInitialization::Build() const
       detectorLength = SiemensQuadraDetector::LengthForNRings( SiemensQuadraDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
       detectorLength /= 2.0; // half-lengths
     }
-
+    
     this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, m_detectorMaterial, 400.0*mm, 420.0*mm ) );
   }
   else if ( m_sourceName == "Explorer" )
