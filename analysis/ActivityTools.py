@@ -166,7 +166,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
         detectionTimes = []
         if UsePhotonTime:
             for photon in event:
-                detectionTimes.append( time + (photon[2]*1E-9) )
+                detectionTimes.append( time + (photon[3]*1E-9) )
 
         # Don't start a coincidence window if the event didn't pass cuts
         if len( event ) == 0:
@@ -182,7 +182,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
                 event += newDecay
                 if UsePhotonTime:
                     for photon in newDecay:
-                        detectionTimes.append( nextTime + (photon[2]*1E-9) )
+                        detectionTimes.append( nextTime + (photon[3]*1E-9) )
 
                 # Update to next time point
                 nextTime += DeltaT( DecayRates[ channelIndex ] )

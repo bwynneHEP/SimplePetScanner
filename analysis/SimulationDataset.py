@@ -91,11 +91,11 @@ class SimulationDataset:
 
         modifiedEvent = []
         for photon in self.inputData[ eventID ]:
-
-          newEnergy = photon[1] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
-          newTime = photon[2] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
-          modifiedEvent += [[ photon[0], newEnergy, newTime, photon[3], photon[4], photon[5] ]]
-
+          # print("photon coords = ", photon)
+          newEnergy = photon[2] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
+          newTime = photon[3] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
+          modifiedEvent += [[ photon[0], photon[1], newEnergy, newTime, photon[4], photon[5], photon[6] ]]
+        # print("Modified event: ", modifiedEvent)
         return modifiedEvent
 
       else:
@@ -130,11 +130,12 @@ def FindHitRadius( Event, DetectorRadius):
     return DetectorRadius * math.cos( deltaPhi/2.0 ), hasSameEventID
 
 def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
+  # print("Event = ", Event)
   if len( Event ) != 2:
     return False
 
   # If there's a z-cut, apply it
-  if ZMin != ZMax:
+  if ZMin != ZMax: 
     meanZ = ( Event[0][6] + Event[1][6] ) / 2.0
     if meanZ < ZMin or meanZ > ZMax:
       return False
@@ -147,7 +148,6 @@ def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
 def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, CoincidenceWindow=0.0 ):
-  print("DetectorMaterial in createdataset: ", DetectorMaterial)
   # Phantom length affects the attenuating material, so include it even if source is detector
   outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm."
   # Hanna: printing detector name commented out to have common naming convention
