@@ -97,24 +97,11 @@ def CreateErrorEnvelope( tracerData, crystalData, crystalActivity, detectorRadiu
     
     # Create the arguments for each process
     arguments = []
-    # result = None
-    # necrEnvelope = []
-    # trueEnvelope = []
-    # rPlusSEnvelope = []
-    # scatterEnvelope = []
-    # randomEnvelope = []
+
     for experiment in range(10):
         arguments.append( ( tracerData, crystalData, crystalActivity, detectorRadius,
                             phantomLength, simulationWindow, coincidenceWindow, 325.0,
                             EnergyResolution, TimeResolution ) )
-        # result = NECRatTimeF18(tracerData, crystalData, crystalActivity, detectorRadius,
-        #                     phantomLength, simulationWindow, coincidenceWindow, 325.0,
-        #                     EnergyResolution, TimeResolution)
-        # necrEnvelope.append( result[1] )
-        # trueEnvelope.append( result[2] )
-        # rPlusSEnvelope.append( result[3] )
-        # scatterEnvelope.append( result[4] )
-        # randomEnvelope.append( result[5] )
     
     # Launch a separate process for each detector length
     result = None
