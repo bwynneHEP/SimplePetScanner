@@ -9,10 +9,9 @@ def CrystalVolume():
   return 0.32 * 0.32 * 2.0
 
 def CrystalMass( DetectorMaterial ):
-  varName = f'density_{DetectorMaterial}'
-  if varName not in PC.__dict__:
-    raise RuntimeError(f'{varName} does not exist in PhysicsConstants. Wrong material name?')
-  return CrystalVolume() * eval(f'PC.{varName}')
+  if DetectorMaterial not in PC.densities:
+    raise RuntimeError('No density value for this material in PhysicsConstants. Wrong material name?')
+  return CrystalVolume() * PC.densities[DetectorMaterial]
 
 def DetectorMass( DetectorMaterial ):
   return CrystalMass(DetectorMaterial) * 243200.0
