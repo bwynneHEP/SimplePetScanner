@@ -63,7 +63,7 @@ tracerData = CreateDataset( 1024, "Siemens", phantomLength, "LinearF18", dataset
 crystalData = CreateDataset( 1024, "Siemens", phantomLength, "Siemens", datasetSize, siemensEmin, siemensEmax, detectorMaterial )
 
 activityAtTimeSiemens, necrAtTimeSiemens, trueAtTimeSiemens, rPlusSAtTimeSiemens, scatterAtTimeSiemens, randomAtTimeSiemens = NECRatTimeF18( tracerData, crystalData, sqp.Lu176decaysInMass( sqp.DetectorMass(detectorMaterial) ), sqp.DetectorRadius(), phantomLength )
-
+promptAtTimeSiemens = [sum(n) for n in zip(*[trueAtTimeSiemens, scatterAtTimeSiemens, randomAtTimeSiemens])]
 mpl.clf()
 
 detectorMaterial = "LYSO"
@@ -71,7 +71,7 @@ tracerData = CreateDataset( 1850, "Explorer", phantomLength, "LinearF18", datase
 crystalData = CreateDataset( 1850, "Explorer", phantomLength, "Explorer", datasetSize, explorerEmin, explorerEmax, detectorMaterial )
 
 activityAtTimeExplorer, necrAtTimeExplorer, trueAtTimeExplorer, rPlusSAtTimeExplorer, scatterAtTimeExplorer, randomAtTimeExplorer = NECRatTimeF18( tracerData, crystalData, ep.Lu176decaysInMass( ep.DetectorMass(detectorMaterial)), ep.DetectorRadius(), phantomLength )
-
+promptAtTimeExplorer = [sum(n) for n in zip(*[trueAtTimeExplorer, scatterAtTimeExplorer, randomAtTimeExplorer])]
 mpl.clf()
 
 labels = [ "Siemens NECR", "Explorer NECR", "Siemens True", "Explorer True", "Siemens R+S", "Explorer R+S" ]
@@ -88,28 +88,30 @@ mpl.gcf().set_size_inches(10, 10)
 mpl.savefig("SiemensVsExplorer.pdf")
 mpl.clf()
 
-labels = [ "NECR", "True rate", "Scatter rate", "Random rate" ]
+labels = [ "NECR", "Prompts", "Trues", "Scatter", "Randoms" ]
 mpl.plot( activityAtTimeExplorer, necrAtTimeExplorer, label=labels[0], linewidth=4.0 )
-mpl.plot( activityAtTimeExplorer, trueAtTimeExplorer, label=labels[1], linewidth=4.0 )
-mpl.plot( activityAtTimeExplorer, scatterAtTimeExplorer, label=labels[2], linewidth=4.0 )
-mpl.plot( activityAtTimeExplorer, randomAtTimeExplorer, label=labels[3], linewidth=4.0 )
+mpl.plot( activityAtTimeExplorer, promptAtTimeExplorer, label=labels[1], linewidth=4.0 )
+mpl.plot( activityAtTimeExplorer, trueAtTimeExplorer, label=labels[2], linewidth=4.0 )
+mpl.plot( activityAtTimeExplorer, scatterAtTimeExplorer, label=labels[3], linewidth=4.0 )
+mpl.plot( activityAtTimeExplorer, randomAtTimeExplorer, label=labels[4], linewidth=4.0 )
 mpl.legend( labels )
 mpl.xlabel( "Activity [Bq/ml]" )
 mpl.xlim( [ 0, 20000 ] )
-mpl.ylim( [ 0, 8000000 ] )
+mpl.ylim( [ 0, 10000000 ] )
 mpl.ylabel( "Counts [/sec]" )
 mpl.gcf().set_size_inches(10, 10)
 mpl.savefig("Explorer_Counts.pdf")
 mpl.clf()
 
 mpl.plot( activityAtTimeSiemens, necrAtTimeSiemens, label=labels[0], linewidth=4.0 )
-mpl.plot( activityAtTimeSiemens, trueAtTimeSiemens, label=labels[1], linewidth=4.0 )
-mpl.plot( activityAtTimeSiemens, scatterAtTimeExplorer, label=labels[2], linewidth=4.0 )
-mpl.plot( activityAtTimeSiemens, randomAtTimeExplorer, label=labels[3], linewidth=4.0 )
+mpl.plot( activityAtTimeSiemens, promptAtTimeSiemens, label=labels[1], linewidth=4.0 )
+mpl.plot( activityAtTimeSiemens, trueAtTimeSiemens, label=labels[2], linewidth=4.0 )
+mpl.plot( activityAtTimeSiemens, scatterAtTimeSiemens, label=labels[3], linewidth=4.0 )
+mpl.plot( activityAtTimeSiemens, randomAtTimeSiemens, label=labels[4], linewidth=4.0 )
 mpl.legend( labels )
 mpl.xlabel( "Activity [Bq/ml]" )
 mpl.xlim( [ 0, 40000 ] )
-mpl.ylim( [ 0, 10000000 ] )
+mpl.ylim( [ 0, 12000000 ] )
 mpl.ylabel( "Counts [/sec]" )
 mpl.gcf().set_size_inches(10, 10)
 mpl.savefig("Siemens_Counts.pdf")
