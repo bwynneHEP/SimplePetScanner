@@ -118,7 +118,7 @@ import matplotlib.pyplot as mpl
 # base the coincidence window on whether the decay actually triggers the detector
 def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0, UsePhotonTime=False, EnergyResolution=0.0, TimeResolution=0.0 ):
     hitRadii = []
-    sameEventID = []
+    sameEventIDArray = []
     trueEvents = 0
     allEvents = 0
     eventsOutsideMid = 0
@@ -221,9 +221,10 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
 
         # Classify the events
         if TwoHitEvent( event, DetectorRadius, ZMin, ZMax ):
-            hitRadius, hasSameEventID = FindHitRadius( event, DetectorRadius )
+            hitRadius = FindHitRadius( event, DetectorRadius )
             hitRadii.append( hitRadius )
-            sameEventID.append( hasSameEventID )
+            hasSameEventID = SameEventID( event )
+            sameEventIDArray.append( hasSameEventID )
 
             #check if event is a true, scatter or random
              
@@ -255,9 +256,9 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
     # First find the true and R+S coincidences
     NECRInSimWin, truesInSimWin, rPlusSInSimWin = NECRFromHistogram( x, y, SimulationWindow)
     # Then, find the number of scattered events by re-running NECRFromHistograms only for photons that have the same EventID
-    # Find indexes of events in which both photons has the same eventID
+    # Find indexes of events in which both photons have the same eventID
     hitRadiiCoinc = []
-    for i, val in enumerate(sameEventID):
+    for i, val in enumerate(sameEventIDArray):
         if val == True:
             hitRadiiCoinc.append(hitRadii[i])
     y, x, patches = mpl.hist( hitRadiiCoinc, bins=26, range=[-130, 130] )

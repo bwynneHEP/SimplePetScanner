@@ -105,14 +105,14 @@ class SimulationDataset:
   def size( self ):
     return self.totalDecays
 
+def SameEventID( Event ): 
+  if (Event[0][0] == Event[1][0]) :
+    return True
+  return False
+
 def FindHitRadius( Event, DetectorRadius ):
   if len( Event ) != 2:
     return -1.0
-
-  #check event ID from both photons 
-  hasSameEventID = False
-  if (Event[0][0] == Event[1][0]) :
-    hasSameEventID = True
 
   # Calculate delta phi
   phi1 = Event[0][5]
@@ -124,12 +124,12 @@ def FindHitRadius( Event, DetectorRadius ):
     deltaPhi += 2.0 * math.pi
 
   if deltaPhi < 0.0:
-    return -DetectorRadius * math.cos( deltaPhi/2.0 ), hasSameEventID
+    return -DetectorRadius * math.cos( deltaPhi/2.0 )
   else:
-    return DetectorRadius * math.cos( deltaPhi/2.0 ), hasSameEventID
+    return DetectorRadius * math.cos( deltaPhi/2.0 )
 
 def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
-  # print("Event = ", Event)
+  
   if len( Event ) != 2:
     return False
 
@@ -138,9 +138,9 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
     meanZ = ( Event[0][6] + Event[1][6] ) / 2.0
     if meanZ < ZMin or meanZ > ZMax:
       return False
-
+  
   # Cut on the radius of closest approach
-  rMin, hasSameEventID = FindHitRadius( Event, DetectorRadius )
+  rMin = FindHitRadius( Event, DetectorRadius )
   return math.fabs( rMin ) <= RMax
 
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
