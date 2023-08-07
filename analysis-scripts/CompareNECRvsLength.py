@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../analysis/')
 import SiemensQuadraProperties as sqp
 from ActivityTools import *
 from SimulationDataset import *

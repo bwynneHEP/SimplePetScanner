@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../analysis/')
 import SiemensQuadraProperties as sqp
 import ExplorerProperties as ep
 from ActivityTools import *
@@ -50,7 +52,7 @@ def NECRatTimeF18( tracerData, crystalData, crystalActivity, detectorRadius, pha
 
 # Simulation parameters
 phantomLength = 700
-datasetSize = 100000
+datasetSize = 1000000
 siemensEmin = 435.0
 siemensEmax = 585.0
 explorerEmin = 430.0

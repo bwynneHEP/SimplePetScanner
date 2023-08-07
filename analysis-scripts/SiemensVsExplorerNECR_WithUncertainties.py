@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../analysis/')
 import SiemensQuadraProperties as sqp
 import ExplorerProperties as ep
 from ActivityTools import *
