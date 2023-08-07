@@ -74,7 +74,6 @@ def GenerateCoincidences( DecayRates, EndTime, TimeWindow, TimelinesOut = None )
             coincidences.append( coincidence )
             if TimelinesOut is not None:
                 coincidenceTimes.append( time )
-
     return coincidences, coincidenceTimes
 
 
@@ -83,7 +82,6 @@ import numpy as np
 
 # Closer to the NEMA calculation, hopefully similar results
 def NECRFromHistogram( bins, values, SimulationWindow ):
-    
     # Assume one bin edge is on the 20mm boundary
     lowValue = 0.0
     lowBin = 0
@@ -115,13 +113,12 @@ def NECRFromHistogram( bins, values, SimulationWindow ):
 
     return necr/SimulationWindow, trues/SimulationWindow, rPlusS/SimulationWindow
 
-
 import matplotlib.pyplot as mpl
 
 # base the coincidence window on whether the decay actually triggers the detector
 def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0, UsePhotonTime=False, EnergyResolution=0.0, TimeResolution=0.0 ):
-
     hitRadii = []
+    sameEventIDArray = []
     trueEvents = 0
     allEvents = 0
     eventsOutsideMid = 0
@@ -145,8 +142,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
             if nextTime <= SimulationWindow:
                 unfinishedTimeline = True
                 break
-
-        # Start the window at the earliest event
+        #Start the window at the earliest event
         time = min( nextTimes )
         event = [] # Have to start empty, then add. Otherwise end up taking a reference and bad things happen
 
@@ -170,7 +166,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
         detectionTimes = []
         if UsePhotonTime:
             for photon in event:
-                detectionTimes.append( time + (photon[2]*1E-9) )
+                detectionTimes.append( time + (photon[3]*1E-9) )
 
         # Don't start a coincidence window if the event didn't pass cuts
         if len( event ) == 0:
@@ -186,7 +182,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
                 event += newDecay
                 if UsePhotonTime:
                     for photon in newDecay:
-                        detectionTimes.append( nextTime + (photon[2]*1E-9) )
+                        detectionTimes.append( nextTime + (photon[3]*1E-9) )
 
                 # Update to next time point
                 nextTime += DeltaT( DecayRates[ channelIndex ] )
@@ -225,13 +221,18 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
 
         # Classify the events
         if TwoHitEvent( event, DetectorRadius, ZMin, ZMax ):
-            hitRadii.append( FindHitRadius( event, DetectorRadius ) )
+            hitRadius = FindHitRadius( event, DetectorRadius )
+            hitRadii.append( hitRadius )
+            hasSameEventID = SameEventID( event )
+            sameEventIDArray.append( hasSameEventID )
+
+            #check if event is a true, scatter or random
+             
             #allEvents += 1
             #if BackToBackEvent( event, DetectorRadius, ZMin, ZMax ):
             #    trueEvents += 1
             #else:
             #    eventsOutsideMid += 1
-
     # Simplistic NECR calculation
     # The true events are those in the inner radius (2cm) minus expected background
     # background expectation is within the outer radius (12cm)
@@ -252,4 +253,16 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
 
     y, x, patches = mpl.hist( hitRadii, bins=26, range=[-130, 130] )
     mpl.clf()
-    return NECRFromHistogram( x, y, SimulationWindow )
+    # First find the true and R+S coincidences
+    NECRInSimWin, truesInSimWin, rPlusSInSimWin = NECRFromHistogram( x, y, SimulationWindow)
+    # Then, find the number of scattered events by re-running NECRFromHistograms only for photons that have the same EventID
+    # Find indexes of events in which both photons have the same eventID
+    hitRadiiCoinc = []
+    for i, val in enumerate(sameEventIDArray):
+        if val == True:
+            hitRadiiCoinc.append(hitRadii[i])
+    y, x, patches = mpl.hist( hitRadiiCoinc, bins=26, range=[-130, 130] )
+    NECRTmp, truesTmp, scattersInSimWin = NECRFromHistogram( x, y, SimulationWindow)
+    randomsInSimWin = rPlusSInSimWin - scattersInSimWin
+
+    return NECRInSimWin, truesInSimWin, rPlusSInSimWin, scattersInSimWin, randomsInSimWin

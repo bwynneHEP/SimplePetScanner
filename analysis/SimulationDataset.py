@@ -54,7 +54,7 @@ class SimulationDataset:
 
       # Do the energy window on loading to keep RAM down
       if energyKeV >= EnergyMin and energyKeV <= EnergyMax:
-        wholeEvent = [ moduleID, energyKeV, timeNS ]
+        wholeEvent = [ eventID, moduleID, energyKeV, timeNS ]
         for i in range( 4, len( splitLine ) ):
           wholeEvent.append( float( splitLine[i] ) )
 
@@ -92,11 +92,9 @@ class SimulationDataset:
 
         modifiedEvent = []
         for photon in self.inputData[ eventID ]:
-
-          newEnergy = photon[1] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
-          newTime = photon[2] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
-          modifiedEvent += [[ photon[0], newEnergy, newTime, photon[3], photon[4], photon[5] ]]
-
+          newEnergy = photon[2] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
+          newTime = photon[3] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
+          modifiedEvent += [[ photon[0], photon[1], newEnergy, newTime, photon[4], photon[5], photon[6] ]]
         return modifiedEvent
 
       else:
@@ -107,13 +105,18 @@ class SimulationDataset:
   def size( self ):
     return self.totalDecays
 
+def SameEventID( Event ): 
+  if (Event[0][0] == Event[1][0]) :
+    return True
+  return False
+
 def FindHitRadius( Event, DetectorRadius ):
   if len( Event ) != 2:
     return -1.0
 
   # Calculate delta phi
-  phi1 = Event[0][4]
-  phi2 = Event[1][4]
+  phi1 = Event[0][5]
+  phi2 = Event[1][5]
   deltaPhi = phi1 - phi2
   while deltaPhi > math.pi:
     deltaPhi -= 2.0 * math.pi
@@ -126,15 +129,16 @@ def FindHitRadius( Event, DetectorRadius ):
     return DetectorRadius * math.cos( deltaPhi/2.0 )
 
 def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
+  
   if len( Event ) != 2:
     return False
 
   # If there's a z-cut, apply it
   if ZMin != ZMax:
-    meanZ = ( Event[0][5] + Event[1][5] ) / 2.0
+    meanZ = ( Event[0][6] + Event[1][6] ) / 2.0
     if meanZ < ZMin or meanZ > ZMax:
       return False
-
+  
   # Cut on the radius of closest approach
   rMin = FindHitRadius( Event, DetectorRadius )
   return math.fabs( rMin ) <= RMax
@@ -142,12 +146,12 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, Seed=1234, CoincidenceWindow=0.0, DetectorMaterial="" ):
-
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, CoincidenceWindow=0.0 ):
   # Phantom length affects the attenuating material, so include it even if source is detector
   outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm."
-  if DetectorMaterial != "":
-    outputFileName += DetectorMaterial + "."
+  # Hanna: printing detector name commented out to have common naming convention
+  # if DetectorMaterial != "":
+  #   outputFileName += DetectorMaterial + "."
   outputFileName += Source + "." + str(SourceLengthMM) + "mm." + str(Seed) + ".csv"
 
   # Check if file already present (in which case assume it's re-usable)
@@ -164,13 +168,12 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
     command += " --randomSeed " + str(Seed)
     if DetectorMaterial != "":
       command += " --detectorMaterial " + DetectorMaterial
+    # print("Running command = ", command)
     process = subprocess.Popen( command, shell=True )
     process.wait() # Later can do some multiprocess stuff
-
     if process.returncode == 0:
       print( "Simulation complete" )
     else:
       print( "Simulation failed with return code: ", process.returncode )
       return None
-
   return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, CoincidenceWindow )
