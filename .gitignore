@@ -1,4 +1,8 @@
+# ignore the following:
 *.pdf
 hits*.csv
 *.txt
 build/
+
+# but not these:
+!build/initial
