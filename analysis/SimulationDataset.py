@@ -78,6 +78,7 @@ class SimulationDataset:
       self.unusedEvents.append( i )
 
   def SampleOneEvent( self, EnergyResolution=0.0, TimeResolution=0.0 ):
+
     # Check if we have any events left
     if len( self.unusedEvents ) == 0:
       self.unusedEvents = self.usedEvents
@@ -91,11 +92,9 @@ class SimulationDataset:
 
         modifiedEvent = []
         for photon in self.inputData[ eventID ]:
-          # print("photon coords = ", photon)
           newEnergy = photon[2] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
           newTime = photon[3] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
           modifiedEvent += [[ photon[0], photon[1], newEnergy, newTime, photon[4], photon[5], photon[6] ]]
-        # print("Modified event: ", modifiedEvent)
         return modifiedEvent
 
       else:
@@ -106,7 +105,7 @@ class SimulationDataset:
   def size( self ):
     return self.totalDecays
 
-def FindHitRadius( Event, DetectorRadius):
+def FindHitRadius( Event, DetectorRadius ):
   if len( Event ) != 2:
     return -1.0
 
@@ -135,7 +134,7 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
     return False
 
   # If there's a z-cut, apply it
-  if ZMin != ZMax: 
+  if ZMin != ZMax:
     meanZ = ( Event[0][6] + Event[1][6] ) / 2.0
     if meanZ < ZMin or meanZ > ZMax:
       return False
