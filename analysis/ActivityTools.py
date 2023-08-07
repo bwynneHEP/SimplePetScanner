@@ -251,13 +251,11 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
     #    print( str( lostPhotons ) + " photons lost of " + str( totalPhotons ) + " total (" + str( lostPhotons * 100 / totalPhotons ) + "%) and " + str(recycledPhotons) + " recycled, " + str(windowsFromRecycled) + " recycled to new window" )
 
     y, x, patches = mpl.hist( hitRadii, bins=26, range=[-130, 130] )
-    #counts, bins 
     mpl.clf()
-    # return NECRFromHistogram( x, y, SimulationWindow )
-    # Hanna: First find the true and R+S coincidences
+    # First find the true and R+S coincidences
     NECRInSimWin, truesInSimWin, rPlusSInSimWin = NECRFromHistogram( x, y, SimulationWindow)
-    #Hanna: then, find the number of scattered events by re-running NECRFromHistograms only for photons that have the same EventID
-    #Hanna: first find indexes of events in which both photons has the same eventID
+    # Then, find the number of scattered events by re-running NECRFromHistograms only for photons that have the same EventID
+    # Find indexes of events in which both photons has the same eventID
     hitRadiiCoinc = []
     for i, val in enumerate(sameEventID):
         if val == True:
