@@ -168,7 +168,6 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
     command += " --randomSeed " + str(Seed)
     if DetectorMaterial != "":
       command += " --detectorMaterial " + DetectorMaterial
-    # print("Running command = ", command)
     process = subprocess.Popen( command, shell=True )
     process.wait() # Later can do some multiprocess stuff
     if process.returncode == 0:
