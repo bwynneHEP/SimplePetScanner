@@ -10,8 +10,8 @@ def F18ActivityAtTime( StartingActivity, TimeElapsed ):
 def Zr89ActivityAtTime( StartingActivity, TimeElapsed ):
     return ActivityAtTime( StartingActivity, TimeElapsed, 78.41*60.0*60.0 )
 
-def TracerActivityAtTime( StartingActivity, TimeElapsed, Tracer ):
-    return StartingActivity * ( 2.0 ** ( -TimeElapsed / PC.halflives[Tracer] ) )
+def TracerActivityAtTime( StartingActivity, TimeElapsed, Isotope ):
+    return StartingActivity * ( 2.0 ** ( -TimeElapsed / PC.halflives[Isotope] ) )
 
 import random
 
