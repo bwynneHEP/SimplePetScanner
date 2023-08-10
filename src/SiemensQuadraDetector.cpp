@@ -22,7 +22,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
 
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
-  G4Material* crystal = GetCrystalMaterial(Material);
+  G4Material* crystal = CrystalMaterial::GetCrystalMaterial(Material);
  
   std::cout << "Selected detector material: " << crystal->GetName() << std::endl;
 
