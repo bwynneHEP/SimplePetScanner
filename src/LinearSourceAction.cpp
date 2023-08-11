@@ -5,6 +5,8 @@
 #include "G4IonTable.hh"
 #include "Randomize.hh"
 
+#include <utility>
+
 LinearSourceAction::LinearSourceAction( G4double minZ, G4double maxZ, std::string isotope )
   : G4VUserPrimaryGeneratorAction()
   , m_minZ( minZ ), m_maxZ( maxZ )
@@ -33,29 +35,27 @@ void LinearSourceAction::GeneratePrimaries( G4Event* anEvent )
   if ( m_isotope.size() )
   {
     G4int Z = 0, A = 0;
-    if ( m_isotope == "F18" )
-    {
-      // Fluorine 18
-      Z = 9;
-      A = 18;
+
+    std::map<std::string, std::pair<G4int, G4int>> isotopeMap = {
+      {"F18", {9, 18}},
+      {"Zr89", {40, 89}},
+      {"Y90", {39, 90}},
+      {"C11", {6, 11}}, 
+      {"O15", {8, 15}},
+      {"N13", {7, 13}},
+      {"Rb82", {37, 82}},
+      {"Ga68", {31, 68}},
+    };
+
+    if (auto search = isotopeMap.find(m_isotope); search != isotopeMap.end()){
+      Z = search->second.first;
+      A = search->second.second;
     }
-    else if ( m_isotope == "Zr89" )
-    {
-      // Zirconium 89
-      Z = 40;
-      A = 89;
-    }
-    else if ( m_isotope == "Y90" )
-    {
-      // Yttrium 90
-      Z = 39;
-      A = 90;
-    }
-    else
-    {
+    else {
       std::cerr << "Unrecognised tracer isotope: " << m_isotope << std::endl;
       exit(1);
     }
+
     G4double ionCharge = 0.0 * eplus;
     G4double excitEnergy = 0.0 * keV;
     G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );
