@@ -40,6 +40,71 @@ G4Material* GetCrystalMaterial(const std::string& Material){
 
   G4Material* BaF2 = nistManager->FindOrBuildMaterial("G4_BARIUM_FLUORIDE");
 
+  G4Material* CaF2 = nistManager->FindOrBuildMaterial("G4_CALCIUM_FLUORIDE");
+
+  G4Element* Cd = nistManager->FindOrBuildElement( "Cd", isotopes );
+  G4Element* W = nistManager->FindOrBuildElement( "W", isotopes );
+  G4Material* CdWO4 = new G4Material( "CdWO4", 7.9*g/cm3, 3 );
+  CdWO4->AddElement( Cd, 1 );
+  CdWO4->AddElement( W, 1 );
+  CdWO4->AddElement( O, 4 );
+
+  G4Element* Zn = nistManager->FindOrBuildElement( "Zn", isotopes );
+  G4Element* Te = nistManager->FindOrBuildElement( "Te", isotopes );
+  G4Material* CZT = new G4Material( "CdZnTe", 5.8*g/cm3, 3 );
+  CZT->AddElement( Cd, 1 );
+  CZT->AddElement( Zn, 1 );
+  CZT->AddElement( Te, 1 );
+
+  //Perovskites
+  G4Element* C  = nistManager->FindOrBuildElement( "C" , isotopes );
+  G4Element* H = nistManager->FindOrBuildElement( "H", isotopes );
+  G4Element* N = nistManager->FindOrBuildElement( "N", isotopes );
+  G4Element* Pb  = nistManager->FindOrBuildElement( "Pb" , isotopes );
+  G4Element* Br  = nistManager->FindOrBuildElement( "Br" , isotopes );
+  G4Material* MAPbBr3 = new G4Material( "CH3NH3PbBr3", 3.83*g/cm3, 5 );
+  MAPbBr3->AddElement( C, 2.51 * perCent );
+  MAPbBr3->AddElement( H,  1.27  * perCent );
+  MAPbBr3->AddElement( N, 2.92  * perCent );
+  MAPbBr3->AddElement( Pb,  43.26 * perCent );
+  MAPbBr3->AddElement(Br,  50.04 * perCent );
+
+  G4Element* Cs = nistManager->FindOrBuildElement( "Cs" , isotopes );
+  G4Element* Ag = nistManager->FindOrBuildElement( "Ag", isotopes );
+  G4Element* Bi = nistManager->FindOrBuildElement( "Bi", isotopes );
+  G4Material* Cs2AgBiBr6 = new G4Material( "Cs2AgBiBr6", 4.65*g/cm3, 4 );
+  Cs2AgBiBr6->AddElement( Cs, 25.03 * perCent );
+  Cs2AgBiBr6->AddElement( Ag,  10.16  * perCent );
+  Cs2AgBiBr6->AddElement( Bi, 19.68  * perCent );
+  Cs2AgBiBr6->AddElement( Br,  45.13 * perCent );
+
+  G4Element* I = nistManager->FindOrBuildElement( "I", isotopes );
+  G4Material* MAPbI3 = new G4Material( "CH3NH3PbI3", 4.0*g/cm3, 5 );
+  MAPbI3->AddElement( C, 1 );
+  MAPbI3->AddElement( H, 6 );
+  MAPbI3->AddElement( N, 1 );
+  MAPbI3->AddElement( Pb, 1 );
+  MAPbI3->AddElement( I, 3 );
+
+  G4Element* Ca = nistManager->FindOrBuildElement( "Ca", isotopes );
+  G4Element* Ti = nistManager->FindOrBuildElement( "Ti", isotopes );
+  G4Material* CaTiO3 = new G4Material( "CaTiO3", 0.986*g/cm3, 3 );
+  CaTiO3->AddElement( Ca, 1 );
+  CaTiO3->AddElement( Ti, 1 );
+  CaTiO3->AddElement( O, 3 );
+
+  G4Material* CsPbBr3 = new G4Material( "CsPbBr3", 5.8*g/cm3, 3 );
+  CsPbBr3->AddElement( Cs, 1 );
+  CsPbBr3->AddElement( Pb, 1 );
+  CsPbBr3->AddElement( Br, 3 );
+
+  G4Material* FAPbI3 = new G4Material( "(CH(NH2)2PbI3", 4.0*g/cm3, 5 ); //(CH(NH2)2PbI3
+  FAPbI3->AddElement( C, 2 );
+  FAPbI3->AddElement( H, 6 );
+  FAPbI3->AddElement( N, 2 );
+  FAPbI3->AddElement( Pb, 1 );
+  FAPbI3->AddElement( I, 3 );
+
   std::map<std::string, G4Material*> materialMap = {
     {"LSO", LSO},
     {"LYSO", LYSO},
@@ -47,7 +112,16 @@ G4Material* GetCrystalMaterial(const std::string& Material){
     {"BGO", BGO}, 
     {"CsF", CsF},
     {"CsI", CsI},
-    {"BaF2", BaF2}
+    {"BaF2", BaF2},
+    {"CaF2", CaF2},
+    {"CdWO4", CdWO4},
+    {"CZT", CZT},
+    {"MAPbBr3", MAPbBr3},
+    {"Cs2AgBiBr6", Cs2AgBiBr6},
+    {"MAPbI3", MAPbI3},
+    {"CaTiO3", CaTiO3},
+    {"CsPbBr3", CsPbBr3},
+    {"FAPbI3", FAPbI3}
   };
 
   if (auto search = materialMap.find(Material); search != materialMap.end())
