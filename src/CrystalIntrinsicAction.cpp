@@ -31,7 +31,7 @@ CrystalIntrinsicAction::~CrystalIntrinsicAction()
 // This function is called at the begining of event
 void CrystalIntrinsicAction::GeneratePrimaries( G4Event* anEvent )
 {
-  if ( m_crystalType != "LSO" && m_crystalType != "LYSO" )
+  if ( m_crystalType != "LSO" && m_crystalType != "LYSO" && m_crystalType != "eCsI")
   {
     std::cerr << "Unrecognised crystal type: " << m_crystalType << std::endl;
     exit(1);
@@ -39,6 +39,12 @@ void CrystalIntrinsicAction::GeneratePrimaries( G4Event* anEvent )
 
   // Lutetium 176
   G4int Z = 71, A = 176;
+  // Caesium 137
+  if ( m_crystalType == "eCsI" ){
+    Z = 55;
+    A = 82;
+  }
+  std::cout << "Inside crystal intrinsic action, A = " << A << " Z = " << Z << std::endl;
   G4double ionCharge = 0.0 * eplus;
   G4double excitEnergy = 0.0 * keV;
   G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );

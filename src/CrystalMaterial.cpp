@@ -1,6 +1,7 @@
 #include "CrystalMaterial.h"
 
 #include "G4NistManager.hh"
+#include "G4Isotope.hh"
 #include "G4SystemOfUnits.hh"
 
 namespace CrystalMaterial{
@@ -36,7 +37,22 @@ G4Material* GetCrystalMaterial(const std::string& Material){
   //Hanna: material available via nistManager, no need to define
   G4Material* CsF = nistManager->FindOrBuildMaterial("G4_CESIUM_FLUORIDE");
 
+  //non-radioactive CsI
   G4Material* CsI = nistManager->FindOrBuildMaterial("G4_CESIUM_IODIDE");
+
+  //radioactive CsI with a fraction of Cs-137
+  G4Isotope* Cs133 = new G4Isotope("Cs133", 55, 133, 132.905*g/mole);
+  G4Isotope* Cs137 = new G4Isotope("Cs137", 55, 137, 136.907*g/mole);
+  G4Element* eCs = new G4Element("Enriched Caesium", "Cs", 2);
+  eCs->AddIsotope(Cs133, 99.*perCent);
+  eCs->AddIsotope(Cs137, 1.*perCent);
+  G4Element* I = nistManager->FindOrBuildElement( "I", isotopes );
+  G4Material* eCsI = new G4Material("eCsI", 4.51*g/cm3, 2);
+  eCsI->AddElement(eCs, 1);
+  eCsI->AddElement(I, 1);
+  // std::cout << *(G4Isotope::GetIsotopeTable()) << std::endl;
+  // std::cout << *(G4Element::GetElementTable()) << std::endl;
+  // std::cout << *(G4Material::GetMaterialTable()) << std::endl;
 
   G4Material* BaF2 = nistManager->FindOrBuildMaterial("G4_BARIUM_FLUORIDE");
 
@@ -78,7 +94,6 @@ G4Material* GetCrystalMaterial(const std::string& Material){
   Cs2AgBiBr6->AddElement( Bi, 19.68  * perCent );
   Cs2AgBiBr6->AddElement( Br,  45.13 * perCent );
 
-  G4Element* I = nistManager->FindOrBuildElement( "I", isotopes );
   G4Material* MAPbI3 = new G4Material( "CH3NH3PbI3", 4.0*g/cm3, 5 );
   MAPbI3->AddElement( C, 1 );
   MAPbI3->AddElement( H, 6 );
@@ -112,6 +127,7 @@ G4Material* GetCrystalMaterial(const std::string& Material){
     {"BGO", BGO}, 
     {"CsF", CsF},
     {"CsI", CsI},
+    {"eCsI", eCsI},
     {"BaF2", BaF2},
     {"CaF2", CaF2},
     {"CdWO4", CdWO4},
