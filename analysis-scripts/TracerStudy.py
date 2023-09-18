@@ -24,6 +24,10 @@ random.seed( 1234 )
 
 def NECRatTime( isotope, tracerData, crystalData, crystalActivity, detectorRadius, phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9 ):
     # NEMU NU 2-2012 says 650mm window for 700mm phantom, so keep the same relation
+    # print("simulation window = ", simulationWindow)
+    # print("detectorMaterial = ", detectorMaterial)
+    # print("crystalData = ", crystalData)
+    # print("crystalActivity = ", crystalActivity)
     zWindow = (phantomLength - 50) / 2
 
     # get volume in cc
@@ -36,19 +40,29 @@ def NECRatTime( isotope, tracerData, crystalData, crystalActivity, detectorRadiu
     scatterAtTime = []
     randomAtTime = []
     activityAtTime = []
-    for time in range( 0, 700, 20 ):
+    timeRange = range( 0, 700, 20 )
+    if isotope == "O15" or isotope == "Rb82":
+        timeRange = range( 0, 30, 1 )
+    if isotope == "C11":
+        timeRange = range(0, 300, 5)
+    if isotope == "N13":
+        timeRange = range(0, 150, 2)
+    # for time in range( 0, 700, 20 ):
+    for time in timeRange:
         timeSec = float(time) * 60.0
         activity = TracerActivityAtTime( 1100E6, timeSec, isotope )
 
         activityList = []
         dataList = []
         # Add crystalActivity to the activityList only if the crystal material is radioactive
-        if detectorMaterial == "LSO" or detectorMaterial == "LYSO" :
+        if detectorMaterial == "LSO" or detectorMaterial == "LYSO" or detectorMaterial == "eCsI":
             activityList = [activity, crystalActivity]
             dataList = [tracerData, crystalData]
         else :
             activityList = [activity]
             dataList = [tracerData]
+        # print("activityList = ", activityList)
+        # print("dataList = ", dataList)
         necr, true, rPlusS, scatters, randoms = DetectedCoincidences( activityList, dataList, simulationWindow, coincidenceWindow, detectorRadius, ZMin=-zWindow, ZMax=zWindow )
         necrAtTime.append( necr )
         trueAtTime.append( true )
@@ -79,15 +93,19 @@ def OneDetector( isotope, detectorLength, phantomLength, detectorMaterial, simul
     tracer = "Linear" + isotope
     print("tracer = ", tracer)
 
-    datasetSize = 100000
+    datasetSize = 1000000
 
     tracerData = CreateDataset( detectorLength, "Siemens", phantomLength, tracer, datasetSize, 435.0, 585.0, detectorMaterial )
     crystalData = None
     crystalActivity = None
     #calculate crystal activity and create crystalDataset only if the crystal is radioactive
-    if detectorMaterial == "LSO" or detectorMaterial == "LYSO" :
-        crystalActivity= sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
+    if detectorMaterial == "LSO" or detectorMaterial == "LYSO" or detectorMaterial == "eCsI":
+        if detectorMaterial == "eCsI":
+            crystalActivity= sqp.Cs137decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
+        else:
+            crystalActivity= sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
         crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, 435.0, 585.0, detectorMaterial )
+    
 
     activityAtTimeSiemens, necrAtTimeSiemens, trueAtTimeSiemens, rPlusSAtTimeSiemens, scatterAtTimeSiemens, randomAtTimeSiemens = NECRatTime( isotope, tracerData, crystalData, crystalActivity, sqp.DetectorRadius(), phantomLength, detectorMaterial, simulationWindow, coincidenceWindow )
     return ( max( necrAtTimeSiemens ), sqp.DetectorDiscreteLength( detectorLength ) )
@@ -117,38 +135,61 @@ def PeakNECRWithLengthMultiprocess( isotope, phantomLength, detectorMaterial, si
 trialPhantoms = [ 300, 700, 1100, 1500 ]
 
 isotopes = ["C11", "N13", "O15", "F18", "Ga68", "Rb82"]
+# isotopes = ["F18"]
+simWin = 1E-3
 
-for isotope in isotopes:
-    detectorLengths = []
-    maxNECRlines = []
+# for isotope in isotopes:
+#     detectorLengths = []
+#     maxNECRlines = []
 
-    for phantomLength in trialPhantoms:
-        detectorLengths, maxNECR = PeakNECRWithLengthMultiprocess( isotope, phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9 )
-        maxNECRlines.append( maxNECR )
+#     if isotope == "O15" or isotope == "Rb82" or isotope == "N13":
+#             simWin = 1E-1
+    
+#     for phantomLength in trialPhantoms:
+#         detectorLengths, maxNECR = PeakNECRWithLengthMultiprocess( isotope, phantomLength, detectorMaterial, simulationWindow=simWin, coincidenceWindow=4.7E-9 )
+#         maxNECRlines.append( maxNECR )
 
-    for i, phantomLength in enumerate( trialPhantoms ):
-        mpl.plot( detectorLengths, [val * 0.001 for val in maxNECRlines[i]], label=phantomLength, linewidth=4.0 )
+#     for i, phantomLength in enumerate( trialPhantoms ):
+#         mpl.plot( detectorLengths, [val * 0.001 for val in maxNECRlines[i]], label=phantomLength, linewidth=4.0 )
 
-    mpl.xlabel( "Detector length [mm]" )
-    mpl.ylabel( "Max NECR [kcps]" )
-    mpl.legend( trialPhantoms, title="Source length [mm]" )
-    mpl.gcf().set_size_inches( 10, 10 )
-    figName = 'NECRvsLength_' + isotope + '.pdf'
-    mpl.savefig(figName)
-    mpl.clf()
+#     mpl.xlabel( "Detector length [mm]" )
+#     mpl.ylabel( "Max NECR [kcps]" )
+#     mpl.legend( trialPhantoms, title="Source length [mm]" )
+#     mpl.gcf().set_size_inches( 10, 10 )
+#     figName = 'NECRvsLength_' + isotope + '.pdf'
+#     mpl.savefig(figName)
+#     mpl.clf()
 
 ##########################################################
 phantomLength = 700
-datasetSize = 100000
-crystalData = CreateDataset( 1024, "Siemens", phantomLength, "Siemens", datasetSize, siemensEmin, siemensEmax, detectorMaterial )
+datasetSize = 10000
+crystalData = None
+crystalActivity = None
+detectorLength = 1024
+#calculate crystal activity and create crystalDataset only if the crystal is radioactive
+#if crystal is Lutetium-based
+if detectorMaterial == "LSO" or detectorMaterial == "LYSO" :
+    crystalActivity= sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
+    crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, 435.0, 585.0, detectorMaterial )
+# if crystal is Caesium-based
+if detectorMaterial == "eCsI":
+    crystalActivity= sqp.Cs137decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ), 0.01 )
+    crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, 435.0, 585.0, detectorMaterial )
+
+# crystalData = CreateDataset( 1024, "Siemens", phantomLength, "Siemens", datasetSize, siemensEmin, siemensEmax, detectorMaterial )
 activityList = []
 maxNECRlines = []
 for isotope in isotopes:
     tracer = "Linear" + isotope
     print("tracer = ", tracer)
-    tracerData = CreateDataset( 1024, "Siemens", phantomLength, tracer, datasetSize, siemensEmin, siemensEmax, detectorMaterial )
+    tracerData = CreateDataset( detectorLength, "Siemens", phantomLength, tracer, datasetSize, siemensEmin, siemensEmax, detectorMaterial )
+    
+    if isotope == "O15" or isotope == "Rb82" or isotope == "N13":
+        simWin = 1E-1
+    if isotope == "C11":
+        simWin = 1E-2
 
-    activityAtTimeSiemens, necrAtTimeSiemens, trueAtTimeSiemens, rPlusSAtTimeSiemens, scatterAtTimeSiemens, randomAtTimeSiemens = NECRatTime( isotope, tracerData, crystalData, sqp.Lu176decaysInMass( sqp.DetectorMass(detectorMaterial) ), sqp.DetectorRadius(), phantomLength, detectorMaterial )
+    activityAtTimeSiemens, necrAtTimeSiemens, trueAtTimeSiemens, rPlusSAtTimeSiemens, scatterAtTimeSiemens, randomAtTimeSiemens = NECRatTime( isotope, tracerData, crystalData, crystalActivity, sqp.DetectorRadius(), phantomLength, detectorMaterial, simulationWindow=simWin )
     activityList.append(activityAtTimeSiemens)
     maxNECRlines.append(necrAtTimeSiemens)
     promptAtTimeSiemens = [sum(n) for n in zip(trueAtTimeSiemens, scatterAtTimeSiemens, randomAtTimeSiemens)]
