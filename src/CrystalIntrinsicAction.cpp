@@ -4,6 +4,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4IonTable.hh"
 #include "Randomize.hh"
+#include "G4DecayTable.hh"
 
 CrystalIntrinsicAction::CrystalIntrinsicAction( G4double minZ, G4double maxZ, std::string crystalType, G4double minR, G4double maxR )
   : G4VUserPrimaryGeneratorAction()
@@ -42,13 +43,11 @@ void CrystalIntrinsicAction::GeneratePrimaries( G4Event* anEvent )
   // Caesium 137
   if ( m_crystalType == "eCsI" ){
     Z = 55;
-    A = 82;
+    A = 137;
   }
-  std::cout << "Inside crystal intrinsic action, A = " << A << " Z = " << Z << std::endl;
   G4double ionCharge = 0.0 * eplus;
   G4double excitEnergy = 0.0 * keV;
   G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );
-
   // Ion at rest
   m_particleGun->SetParticleDefinition( ion );
   m_particleGun->SetParticleCharge( ionCharge );
