@@ -18,8 +18,27 @@ class DecayTimeFinderAction : public G4UserStackingAction
       return m_firstDecay;
     }
 
+    std::vector<G4double> GetDecayPos()
+    {
+      return {m_radDecayX, m_radDecayY, m_radDecayZ};
+    }
+
+    std::vector<G4double> GetAnnihilationPos()
+    {
+      return {m_annihilationX, m_annihilationY, m_annihilationZ};
+    }
+
+    G4double GetPositronRange();
+
   private:
     G4double m_firstDecay = 0.0;
+    G4double m_radDecayX = 0.0;
+    G4double m_radDecayY = 0.0;
+    G4double m_radDecayZ = 0.0;
+    G4double m_annihilationX = 0.0;
+    G4double m_annihilationY = 0.0;
+    G4double m_annihilationZ = 0.0;
+    G4double m_positronRange = 0.0;
 };
 
 #endif
