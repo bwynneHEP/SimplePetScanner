@@ -75,7 +75,9 @@ void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
     m_outputFile << m_averagePhiMap[ entry.first ] / entry.second << " ";
     m_outputFile << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
   }
-  m_decayOutputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << m_decayTimeFinder->GetPositronRange() << std::endl;
+  if (m_decayOutputFile.good()){
+    m_decayOutputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << m_decayTimeFinder->GetPositronRange() << std::endl;
+  }
 }
 
 G4float EnergyCounter::GetEFraction( const G4int copyNo ) const
