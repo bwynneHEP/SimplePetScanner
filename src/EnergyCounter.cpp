@@ -3,10 +3,11 @@
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 
-EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName )
+EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName, std::string decayOutputFileName )
   : G4VSensitiveDetector( name ) // Run the constructor of the parent class
   , m_decayTimeFinder( decayTimeFinder )
   , m_outputFile( outputFileName )
+  , m_decayOutputFile( decayOutputFileName )
 {
 }
 
@@ -74,6 +75,7 @@ void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
     m_outputFile << m_averagePhiMap[ entry.first ] / entry.second << " ";
     m_outputFile << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
   }
+  m_decayOutputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << m_decayTimeFinder->GetPositronRange() << std::endl;
 }
 
 G4float EnergyCounter::GetEFraction( const G4int copyNo ) const

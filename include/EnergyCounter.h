@@ -11,7 +11,7 @@
 class EnergyCounter : public G4VSensitiveDetector
 {
   public:
-    EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName );
+    EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName, std::string decayOutputFileName);
     ~EnergyCounter() override;
 
     void Initialize( G4HCofThisEvent* hitCollection ) override;
@@ -28,6 +28,7 @@ class EnergyCounter : public G4VSensitiveDetector
     std::map< G4int, G4double > m_averageZMap;
     DecayTimeFinderAction * m_decayTimeFinder;
     std::ofstream m_outputFile;
+    std::ofstream m_decayOutputFile;
     G4double m_maxEnergyValue = 0.0;
 };
 

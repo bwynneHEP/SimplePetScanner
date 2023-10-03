@@ -18,11 +18,12 @@ G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
 DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength,
-                                            std::string outputFileName, std::string material )
+                                            std::string outputFileName, std::string decayOutputFileName, std::string material )
   : G4VUserDetectorConstruction()
   , m_decayTimeFinder( decayTimeFinder )
   , m_detector( detector )
   , m_outputFileName( outputFileName )
+  , m_decayOutputFileName( decayOutputFileName )
   , m_material( material )
   , m_detectorLength( detectorLength )
   , m_phantomLength( phantomLength )
@@ -105,7 +106,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   }
 
   // DETECTOR: separate class
-  m_energyCounter = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName );
+  m_energyCounter = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName, m_decayOutputFileName );
   if ( m_detector.substr( 0, 7 ) == "Siemens" )
   {
     SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_energyCounter, m_detectorLength, m_material );
