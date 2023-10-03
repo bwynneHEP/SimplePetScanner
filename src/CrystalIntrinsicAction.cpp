@@ -44,7 +44,6 @@ void CrystalIntrinsicAction::GeneratePrimaries( G4Event* anEvent )
     Z = 55;
     A = 82;
   }
-  std::cout << "Inside crystal intrinsic action, A = " << A << " Z = " << Z << std::endl;
   G4double ionCharge = 0.0 * eplus;
   G4double excitEnergy = 0.0 * keV;
   G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon( Z, A, excitEnergy );
