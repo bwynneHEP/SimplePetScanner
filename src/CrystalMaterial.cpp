@@ -50,9 +50,6 @@ G4Material* GetCrystalMaterial(const std::string& Material){
   G4Material* eCsI = new G4Material("eCsI", 4.51*g/cm3, 2);
   eCsI->AddElement(eCs, 1);
   eCsI->AddElement(I, 1);
-  // std::cout << *(G4Isotope::GetIsotopeTable()) << std::endl;
-  // std::cout << *(G4Element::GetElementTable()) << std::endl;
-  // std::cout << *(G4Material::GetMaterialTable()) << std::endl;
 
   G4Material* BaF2 = nistManager->FindOrBuildMaterial("G4_BARIUM_FLUORIDE");
 
