@@ -6,7 +6,7 @@
 
 namespace CrystalMaterial{
 
-G4Material* GetCrystalMaterial(const std::string& Material){
+G4Material* GetCrystalMaterial(const std::string& Material, const std::string& Detector){
     // Materials
   G4NistManager* nistManager = G4NistManager::Instance();
   G4bool isotopes = false;
@@ -139,8 +139,10 @@ G4Material* GetCrystalMaterial(const std::string& Material){
 
   if (auto search = materialMap.find(Material); search != materialMap.end())
     crystal = search->second;
-  else if (Material == "")
+  else if (Material.empty() && Detector == "Siemens")
     crystal = LSO;
+  else if (Material.empty() && Detector == "Explorer")
+    crystal = LYSO;
   else {
     std::cerr << "Unrecognised detector material: " << Material << std::endl;
     exit(1);

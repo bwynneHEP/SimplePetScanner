@@ -7,7 +7,7 @@
 
 namespace CrystalMaterial{
 
-G4Material* GetCrystalMaterial(const std::string& Material);
+G4Material* GetCrystalMaterial(const std::string& Material, const std::string& Detector);
 
 }
 
