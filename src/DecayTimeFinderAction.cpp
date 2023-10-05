@@ -53,6 +53,5 @@ G4ClassificationOfNewTrack DecayTimeFinderAction::ClassifyNewTrack( const G4Trac
 G4double DecayTimeFinderAction::GetPositronRange()
 {
   G4double d2 = pow(m_annihilationX-m_radDecayX, 2) + pow(m_annihilationY-m_radDecayY, 2) + pow(m_annihilationZ-m_radDecayZ, 2);
-  m_positronRange = sqrt(d2);
-  return m_positronRange;
+  return sqrt(d2);
 }

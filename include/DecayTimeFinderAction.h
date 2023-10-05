@@ -38,7 +38,6 @@ class DecayTimeFinderAction : public G4UserStackingAction
     G4double m_annihilationX = 0.0;
     G4double m_annihilationY = 0.0;
     G4double m_annihilationZ = 0.0;
-    G4double m_positronRange = 0.0;
 };
 
 #endif
