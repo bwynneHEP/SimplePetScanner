@@ -138,7 +138,7 @@ G4Material* GetCrystalMaterial(const std::string& Material){
   };
 
   if (auto search = materialMap.find(Material); search != materialMap.end())
-        crystal = search->second;
+    crystal = search->second;
   else if (Material == "")
     crystal = LSO;
   else {
