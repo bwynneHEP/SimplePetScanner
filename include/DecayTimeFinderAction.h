@@ -4,14 +4,18 @@
 #include "G4UserStackingAction.hh"
 #include "G4Types.hh"
 
+#include <fstream>
+
 // Finds the first new track with a non-zero global time
 class DecayTimeFinderAction : public G4UserStackingAction
 {
   public:
-    DecayTimeFinderAction();
+    DecayTimeFinderAction(std::string decayOutputFileName);
     ~DecayTimeFinderAction() override;
      
     G4ClassificationOfNewTrack ClassifyNewTrack( const G4Track* ) override;
+
+    void NewStage() override;
 
     G4double GetDecayTime() const
     {
@@ -38,6 +42,7 @@ class DecayTimeFinderAction : public G4UserStackingAction
     G4double m_annihilationX = 0.0;
     G4double m_annihilationY = 0.0;
     G4double m_annihilationZ = 0.0;
+    std::ofstream m_decayOutputFile;
 };
 
 #endif

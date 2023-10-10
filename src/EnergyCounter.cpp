@@ -3,11 +3,10 @@
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 
-EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName, std::string decayOutputFileName )
+EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * decayTimeFinder, std::string outputFileName )
   : G4VSensitiveDetector( name ) // Run the constructor of the parent class
   , m_decayTimeFinder( decayTimeFinder )
   , m_outputFile( outputFileName )
-  , m_decayOutputFile( decayOutputFileName )
 {
   if (outputFileName.empty()){
     std::cerr << "Output file name cannot be empty" << std::endl;
@@ -15,10 +14,6 @@ EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * deca
   }
   if (!m_outputFile.good()){
     std::cerr << "Failed to open file: " << outputFileName << std::endl;
-    exit(1);
-  }
-  if (!m_decayOutputFile.good() && !decayOutputFileName.empty()) {
-    std::cerr << "Failed to open file: " << decayOutputFileName << std::endl;
     exit(1);
   }
 }
@@ -86,9 +81,6 @@ void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
     m_outputFile << m_averageRMap[ entry.first ] / ( entry.second * mm ) << " ";
     m_outputFile << m_averagePhiMap[ entry.first ] / entry.second << " ";
     m_outputFile << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
-  }
-  if (m_decayOutputFile.good()){
-    m_decayOutputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << m_decayTimeFinder->GetPositronRange() << std::endl;
   }
 }
 

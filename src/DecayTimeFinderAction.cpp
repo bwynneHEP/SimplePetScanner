@@ -6,8 +6,13 @@
 #include "G4ThreeVector.hh"
 #include "G4VProcess.hh"
 
-DecayTimeFinderAction::DecayTimeFinderAction()
+DecayTimeFinderAction::DecayTimeFinderAction(std::string decayOutputFileName):
+m_decayOutputFile( decayOutputFileName )
 {
+  if (!m_decayOutputFile.good() && !decayOutputFileName.empty()) {
+    std::cerr << "Failed to open file: " << decayOutputFileName << std::endl;
+    exit(1);
+  }
 }
 
 DecayTimeFinderAction::~DecayTimeFinderAction()
@@ -55,4 +60,11 @@ G4double DecayTimeFinderAction::GetPositronRange()
 {
   G4double d2 = pow(m_annihilationX-m_radDecayX, 2) + pow(m_annihilationY-m_radDecayY, 2) + pow(m_annihilationZ-m_radDecayZ, 2);
   return sqrt(d2);
+}
+
+void DecayTimeFinderAction::NewStage()
+{
+  if (m_decayOutputFile.good()){
+    m_decayOutputFile << GetPositronRange() << std::endl;
+  }
 }

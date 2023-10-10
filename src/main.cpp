@@ -154,7 +154,7 @@ int main( int argc, char* argv[] )
   runManager->SetUserInitialization( physicsList );
 
   // Set user action classes
-  DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction();
+  DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction( decayOutputFileName );
   ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName, detectorLength, phantomLength, detectorMaterial );
   runManager->SetUserInitialization( actions );
 

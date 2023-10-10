@@ -106,7 +106,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   }
 
   // DETECTOR: separate class
-  m_energyCounter = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName, m_decayOutputFileName );
+  m_energyCounter = new EnergyCounter( "Detector", m_decayTimeFinder, m_outputFileName );
   if ( m_detector.substr( 0, 7 ) == "Siemens" )
   {
     SiemensQuadraDetector::Construct( "Detector", worldLV, m_detector.substr( 7 ), m_energyCounter, m_detectorLength, m_material );
