@@ -24,6 +24,7 @@ int main( int argc, char* argv[] )
   std::string detectorName = "";
   std::string sourceName = "";
   std::string outputFileName = "hits.csv";
+  std::string decayOutputFileName = "";
   G4double detectorLength = -1.0;
   G4double phantomLength = -1.0;
   for ( int argi = 1; argi < argc; ++argi )
@@ -111,6 +112,15 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--decayOutputFileName" )
+    {
+      if ( nextArgument.size() ) decayOutputFileName = nextArgument;
+      else
+      {
+        std::cerr << "Did not find decay output file name to use" << std::endl;
+        return 1;
+      }
+    }
     else if ( argument == "--randomSeed" )
     {
       if ( nextArgument.size() ) randomSeed = nextInteger;
@@ -144,12 +154,12 @@ int main( int argc, char* argv[] )
   runManager->SetUserInitialization( physicsList );
 
   // Set user action classes
-  DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction();
+  DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction( decayOutputFileName );
   ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName, detectorLength, phantomLength, detectorMaterial );
   runManager->SetUserInitialization( actions );
 
   // Set up detector
-  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, detectorMaterial );
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, decayOutputFileName, detectorMaterial );
   runManager->SetUserInitialization( detector );
 
   // Set up the macros
