@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as mpl
 
-colnames = ['event', 'd']
+colnames = ['d']
 isotopeNames = ['$^{11}C$', '$^{13}N$', '$^{15}O$', '$^{18}F$', '$^{68}Ga$', '$^{82}Rb$']
 isotopes = ['C11', 'N13', 'O15', 'F18', 'Ga68', 'Rb82']
 maxRange = [3.8, 5.0, 8.0, 2.2, 9.0, 15.5]

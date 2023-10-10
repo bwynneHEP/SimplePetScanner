@@ -24,7 +24,7 @@ _lineColours = (
     ( 74/255,  31/255,  85/255),
 )
 
-colnames = ['event', 'd']
+colnames = ['d']
 isotopeNames = ['$^{18}F$', '$^{11}C$', '$^{13}N$', '$^{15}O$', '$^{68}Ga$', '$^{82}Rb$']
 isotopes = ['F18', 'C11', 'N13', 'O15', 'Ga68', 'Rb82']
 maxRange = [2.2, 3.8, 5.0, 8.0, 9.0, 15.5]
