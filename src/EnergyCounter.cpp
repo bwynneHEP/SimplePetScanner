@@ -9,12 +9,16 @@ EnergyCounter::EnergyCounter( const G4String& name, DecayTimeFinderAction * deca
   , m_outputFile( outputFileName )
   , m_decayOutputFile( decayOutputFileName )
 {
-  if (!m_decayOutputFile.good() && !decayOutputFileName.empty()) {
-    std::cerr << "Failed to open file: " << decayOutputFileName << std::endl;
+  if (outputFileName.empty()){
+    std::cerr << "Output file name cannot be empty" << std::endl;
     exit(1);
   }
-  if (m_outputFile.good()){
+  if (!m_outputFile.good()){
     std::cerr << "Failed to open file: " << outputFileName << std::endl;
+    exit(1);
+  }
+  if (!m_decayOutputFile.good() && !decayOutputFileName.empty()) {
+    std::cerr << "Failed to open file: " << decayOutputFileName << std::endl;
     exit(1);
   }
 }
