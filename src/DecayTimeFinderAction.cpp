@@ -4,6 +4,7 @@
 #include "G4VUserTrackInformation.hh"
 //#include "G4SystemOfUnits.hh"
 #include "G4ThreeVector.hh"
+#include "G4VProcess.hh"
 
 DecayTimeFinderAction::DecayTimeFinderAction()
 {
@@ -38,7 +39,7 @@ G4ClassificationOfNewTrack DecayTimeFinderAction::ClassifyNewTrack( const G4Trac
   }
 
   // Get the position of the electron-positron annihilation
-  if (track->GetParticleDefinition()->GetParticleName() == "gamma" && track->GetParentID() == 4){
+  if (track->GetParticleDefinition()->GetParticleName() == "gamma" && track->GetParentID() > 0 && track->GetCreatorProcess()->GetProcessName() == "annihil"){
     G4ThreeVector annihilationPos = track->GetPosition();
     m_annihilationX = annihilationPos.x();
     m_annihilationY = annihilationPos.y();
