@@ -60,29 +60,30 @@ def NECRatTimeF18( tracerData, crystalData, crystalActivity, detectorRadius, pha
     return activityAtTime, necrAtTime, trueAtTime, rPlusSAtTime
 
 # Investigate ideal detector length with Siemens geometry
-def OneDetector( detectorLength, phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9 ):
+def OneDetector( detectorLength, phantomLength, detectorMaterial, nevents, Emin, Emax,  simulationWindow=1E-3, coincidenceWindow=4.7E-9 ):
     # Fix random seed for reproducibility, don't if you want variation
     # Has to be set in this method, not before, because this is where we enter the worker processes
     random.seed( detectorLength )
-    tracerData = CreateDataset( detectorLength, "Siemens", phantomLength, "LinearF18", 100000, 435.0, 585.0, detectorMaterial )
+
+    tracerData = CreateDataset( detectorLength, "Siemens", phantomLength, "LinearF18", nevents, Emin, Emax, detectorMaterial )
     crystalData = None
     crystalActivity = None
     #calculate crystal activity and create crystalDataset only if the crystal is radioactive
     if detectorMaterial == "LSO" or detectorMaterial == "LYSO" :
         crystalActivity= sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
-        crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", 100000, 435.0, 585.0, detectorMaterial )
+        crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", nevents, Emin, Emax, detectorMaterial )
 
     activityAtTimeSiemens, necrAtTimeSiemens, trueAtTimeSiemens, rPlusSAtTimeSiemens = NECRatTimeF18( tracerData, crystalData, crystalActivity, sqp.DetectorRadius(), phantomLength, detectorMaterial, simulationWindow, coincidenceWindow )
     return ( max( necrAtTimeSiemens ), sqp.DetectorDiscreteLength( detectorLength ) )
 
-def PeakNECRWithLengthMultiprocess( phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9, processes=5 ):
+def PeakNECRWithLengthMultiprocess( phantomLength, detectorMaterial, nevents, Emin, Emax, simulationWindow=1E-3, coincidenceWindow=4.7E-9, processes=10 ):
     # Create the arguments for each process
     detectorLengths = [ 100, 300, 500, 700, 900, 1100, 1300, 1500, 1700, 1900 ]
     arguments = []
     realLengths = []
     maxNECR = []
     for detectorLength in detectorLengths:
-        arguments.append( ( detectorLength, phantomLength, detectorMaterial, simulationWindow, coincidenceWindow ) )
+        arguments.append( ( detectorLength, phantomLength, detectorMaterial, nevents, Emin, Emax, simulationWindow, coincidenceWindow ) )
         # result = OneDetector(detectorLength, phantomLength, detectorMaterial, simulationWindow, coincidenceWindow)
         # maxNECR.append(result[0])
         # realLengths.append(result[1])
@@ -102,16 +103,24 @@ def PeakNECRWithLengthMultiprocess( phantomLength, detectorMaterial, simulationW
 detectorLengths = []
 maxNECRlines = []
 trialPhantoms = [ 300, 700, 1100, 1500 ]
+
+# Simulation Settings -- check carefully!
 detectorMaterial = "LSO"
+nevents = 1000000
+Emin = 435.0
+Emax = 585.0
+simulationWindow = 1E-3
+coincidenceWindow = 4.7E-9
+
 for phantomLength in trialPhantoms:
-    detectorLengths, maxNECR = PeakNECRWithLengthMultiprocess( phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9 )
+    detectorLengths, maxNECR = PeakNECRWithLengthMultiprocess( phantomLength, detectorMaterial, nevents, Emin, Emax, simulationWindow, coincidenceWindow )
     maxNECRlines.append( maxNECR )
 
 for i, phantomLength in enumerate( trialPhantoms ):
-    mpl.plot( detectorLengths, maxNECRlines[i], label=phantomLength, linewidth=4.0 )
+    mpl.plot( detectorLengths, [val * 0.001 for val in maxNECRlines[i]], label=phantomLength, linewidth=4.0 )
 
 mpl.xlabel( "Detector length [mm]" )
-mpl.ylabel( "Max NECR [/sec]" )
+mpl.ylabel( "Max NECR [kcps]" )
 mpl.legend( trialPhantoms, title="Source length [mm]" )
 mpl.gcf().set_size_inches( 10, 10 )
 mpl.savefig('NECRvsLength.pdf')
@@ -136,12 +145,11 @@ for i, trialPhantom in enumerate( trialPhantoms ):
     while detectorLengths[ detectorLengthIndex ] < trialPhantom:
         detectorLengthIndex += 1
 
-    theplot = plotThreeParts( detectorLengths, maxNECRlines[i], detectorLengthIndex, trialPhantoms[i], myColours[i] )
+    theplot = plotThreeParts( detectorLengths, [val * 0.001 for val in maxNECRlines[i]], detectorLengthIndex, trialPhantoms[i], myColours[i] )
     legendEntries.append( theplot )
 
 mpl.xlabel( "Detector length [mm]")
-mpl.ylabel( "Max NECR [/sec]")
+mpl.ylabel( "Max NECR [kcps]")
 mpl.legend( legendEntries, trialPhantoms, title="Source length [mm]" )
 mpl.gcf().set_size_inches(10,10)
-mpl.ylim( [0.0, 2.5e6] )
 mpl.savefig('NECRvsLength_wLine.pdf')
