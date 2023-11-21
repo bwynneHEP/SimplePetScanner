@@ -12,7 +12,8 @@ import numpy as np
 import matplotlib.pyplot as mpl
 import sys
 
-myColours=["royalblue", "darkorange", "yellowgreen", "hotpink", "orangered"]
+# myColours=["royalblue", "darkorange", "yellowgreen", "hotpink", "orangered"]
+myColours=["grey", "red", "gold", "yellowgreen", "deepskyblue", "hotpink"]
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=myColours)
 
 params = {'legend.fontsize': 15,
@@ -22,13 +23,6 @@ params = {'legend.fontsize': 15,
           'xtick.labelsize': 15,
           'ytick.labelsize': 15}
 mpl.rcParams.update(params)
-
-# Hanna: Set the simulation parameters globally
-simulationWindow = 1E-3
-coincidenceWindow = 4.7E-9
-detectorLengths = [100, 300, 500, 700, 900, 1100, 1300, 1500, 1700, 1900]
-phantomLength = 300
-NDecays = 1000000
 
 def NECRatTimeF18( tracerData, crystalData, crystalActivity, detectorRadius, phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9 ):
     # NEMU NU 2-2012 says 650mm window for 700mm phantom, so keep the same relation
@@ -64,13 +58,13 @@ def NECRatTimeF18( tracerData, crystalData, crystalActivity, detectorRadius, pha
     mpl.clf()
     return activityAtTime, necrAtTime, trueAtTime, rPlusSAtTime
 
-def GetDataset(dirName, detectorLength, phantomLength, NDecays, detectorMaterial, energyMin=435.0, energyMax=585.0):
+def GetDataset(dirName, detectorLength, phantomLength, NDecays, detectorMaterial, Emin, Emax, simulationWindow, coincidenceWindow):
 
     random.seed( detectorLength )
 
     # Get tracer data
     tracerFileName = dirName + "hits.n" + str(NDecays) + ".SiemensBlock." + str(detectorLength) + "mm.LinearF18." + str(phantomLength) + "mm.1234.csv"
-    tracerData = SimulationDataset(tracerFileName, NDecays, 435.0, 585.0)
+    tracerData = SimulationDataset(tracerFileName, NDecays, Emin, Emax)
 
     crystalActivity = None
     crystalData = None
@@ -79,16 +73,16 @@ def GetDataset(dirName, detectorLength, phantomLength, NDecays, detectorMaterial
         crystalActivity = sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
         # Get crystal data
         crystalFileName = dirName + "hits.n" + str(NDecays) + ".SiemensBlock." + str(detectorLength) + "mm.Siemens." + str(phantomLength) + "mm.1234.csv"
-        crystalData = SimulationDataset(crystalFileName, NDecays, 435.0, 585.0)
+        crystalData = SimulationDataset(crystalFileName, NDecays, Emin, Emax)
     
     activityAtTimeSiemens, necrAtTimeSiemens, trueAtTimeSiemens, rPlusSAtTimeSiemens = NECRatTimeF18( tracerData, crystalData, crystalActivity, sqp.DetectorRadius(), phantomLength, detectorMaterial, simulationWindow, coincidenceWindow )
     return ( max( necrAtTimeSiemens ), sqp.DetectorDiscreteLength( detectorLength ) )
 
-def PeakNECRWithLengthMultiprocess(dirName, phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9, processes=5 ):
+def PeakNECRWithLengthMultiprocess(dirName, phantomLength, NDecays, detectorMaterial, Emin, Emax, simulationWindow, coincidenceWindow, processes=10 ):
     # Create the arguments for each process
     arguments = []
     for detectorLength in detectorLengths:
-        arguments.append( (dirName, detectorLength, phantomLength, NDecays, detectorMaterial, simulationWindow, coincidenceWindow ) )
+        arguments.append( (dirName, detectorLength, phantomLength, NDecays, detectorMaterial, Emin, Emax, simulationWindow, coincidenceWindow ) )
 
     # Launch a separate process for each detector length
     result = None
@@ -111,24 +105,37 @@ def PeakNECRWithLengthMultiprocess(dirName, phantomLength, detectorMaterial, sim
     return realLengths, maxNECR
 
 mpl.figure()
-legItems = ["LSO", "NaI", "BGO"]
-items = ["LSO", "NaI", "BGO"]
+legItems = ["BGO", "CdWO$_{4}$", "LSO", "Perovskite 1", "Perovskite 3", "Perovskite 5"]
+items = ["BGO", "CdWO4", "LSO", "CsPbBr3", "FAPbI3", "MAPbI3"]
 dirNames = [
-    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/Data/LSO-1M/",
-    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/Data/NaI-1M/",
-    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/Data/BGO-1M/"
+    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/SimplePetScanner/analysis-scripts-bgo/",
+    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/SimplePetScanner/analysis-scripts-cdwo4/",
+    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/SimplePetScanner/analysis-scripts-lso/",
+    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/SimplePetScanner/analysis-scripts-cspbbr3/",
+    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/SimplePetScanner/analysis-scripts-fapbi3/",
+    "/Users/hannaborecka-bielska/Desktop/PET/pet-sim/sim/SimplePetScanner/analysis-scripts-mapbi3/",
 ]
+# Hanna: Set the simulation parameters globally
+simulationWindow = 1E-3
+coincidenceWindow = 4.7E-9
+detectorLengths = [100, 300, 500, 700, 900, 1100, 1300, 1500, 1700, 1900]
+phantomLength = 700
+NDecays = 1000000
+Emin = 435.0
+Emax = 585.0
+
 maxNECRlines = []
 scannerTrueLengths = []
 
 for i in range(len(legItems)):
-    scannerTrueLengths, maxNECR = PeakNECRWithLengthMultiprocess(str(dirNames[i]), phantomLength, str(items[i]), simulationWindow=1E-3 )
-    mpl.plot( scannerTrueLengths, maxNECR, linewidth=4.0, color= myColours[i], label= legItems[i] )
+    scannerTrueLengths, maxNECR = PeakNECRWithLengthMultiprocess(str(dirNames[i]), phantomLength, NDecays, str(items[i]), Emin, Emax, simulationWindow, coincidenceWindow )
+    mpl.plot( scannerTrueLengths, [val * 0.001 for val in maxNECR], linewidth=4.0, color= myColours[i], label= legItems[i] )
 
-mpl.legend(title="Crystals" )
+mpl.legend(title="Crystals", loc='upper left' )
 mpl.gcf().set_size_inches( 10, 10 )
 mpl.xlabel( "Detector length [mm]" )
-mpl.ylabel( "Max NECR [/sec]" )
+mpl.ylabel( "Max NECR [kcps]" )
+mpl.title("Biograph Vision Quadra geometry", fontsize=20)
 pdfName = "compareNECR_crystal_" + str(phantomLength) + ".pdf"
 mpl.savefig(pdfName)
 
