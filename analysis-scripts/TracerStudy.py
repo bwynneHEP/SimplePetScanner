@@ -9,6 +9,7 @@ import multiprocessing as mp
 mp.set_start_method('fork')
 from multiprocessing import Pool
 import matplotlib.pyplot as mpl
+import pandas as pd
 
 params = {'legend.fontsize': 15,
           'legend.title_fontsize': 15,
@@ -24,10 +25,6 @@ random.seed( 1234 )
 
 def NECRatTime( isotope, tracerData, crystalData, crystalActivity, detectorRadius, phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9 ):
     # NEMU NU 2-2012 says 650mm window for 700mm phantom, so keep the same relation
-    # print("simulation window = ", simulationWindow)
-    # print("detectorMaterial = ", detectorMaterial)
-    # print("crystalData = ", crystalData)
-    # print("crystalActivity = ", crystalActivity)
     zWindow = (phantomLength - 50) / 2
 
     # get volume in cc
@@ -47,7 +44,7 @@ def NECRatTime( isotope, tracerData, crystalData, crystalActivity, detectorRadiu
         timeRange = range(0, 300, 5)
     if isotope == "N13":
         timeRange = range(0, 150, 2)
-    # for time in range( 0, 700, 20 ):
+
     for time in timeRange:
         timeSec = float(time) * 60.0
         activity = TracerActivityAtTime( 1100E6, timeSec, isotope )
@@ -61,8 +58,7 @@ def NECRatTime( isotope, tracerData, crystalData, crystalActivity, detectorRadiu
         else :
             activityList = [activity]
             dataList = [tracerData]
-        # print("activityList = ", activityList)
-        # print("dataList = ", dataList)
+        
         necr, true, rPlusS, scatters, randoms = DetectedCoincidences( activityList, dataList, simulationWindow, coincidenceWindow, detectorRadius, ZMin=-zWindow, ZMax=zWindow )
         necrAtTime.append( necr )
         trueAtTime.append( true )
@@ -75,15 +71,16 @@ def NECRatTime( isotope, tracerData, crystalData, crystalActivity, detectorRadiu
     return activityAtTime, necrAtTime, trueAtTime, rPlusSAtTime, scatterAtTime, randomAtTime
 
 # Simulation parameters
-# phantomLength = 700
 siemensEmin = 435.0
 siemensEmax = 585.0
 explorerEmin = 430.0
 explorerEmax = 645.0
-
-# First plot NECR vs. detectorLength for 4 phantom lengths for each isotope
-# isotope = "Rb82"
+datasetSize = 100
 detectorMaterial = "LSO"
+detectorLength = 1024
+phantomLength = 700
+simWin = 1E-3
+isotopes = ["C11", "N13", "O15", "F18", "Ga68", "Rb82"]
 
 def OneDetector( isotope, detectorLength, phantomLength, detectorMaterial, simulationWindow=1E-3, coincidenceWindow=4.7E-9 ):
     # Fix random seed for reproducibility, don't if you want variation
@@ -95,7 +92,7 @@ def OneDetector( isotope, detectorLength, phantomLength, detectorMaterial, simul
 
     datasetSize = 1000000
 
-    tracerData = CreateDataset( detectorLength, "Siemens", phantomLength, tracer, datasetSize, 435.0, 585.0, detectorMaterial )
+    tracerData = CreateDataset( detectorLength, "Siemens", phantomLength, tracer, datasetSize, siemensEmin, siemensEmax, detectorMaterial )
     crystalData = None
     crystalActivity = None
     #calculate crystal activity and create crystalDataset only if the crystal is radioactive
@@ -104,7 +101,7 @@ def OneDetector( isotope, detectorLength, phantomLength, detectorMaterial, simul
             crystalActivity= sqp.Cs137decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
         else:
             crystalActivity= sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
-        crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, 435.0, 585.0, detectorMaterial )
+        crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, siemensEmin, siemensEmax, detectorMaterial )
     
 
     activityAtTimeSiemens, necrAtTimeSiemens, trueAtTimeSiemens, rPlusSAtTimeSiemens, scatterAtTimeSiemens, randomAtTimeSiemens = NECRatTime( isotope, tracerData, crystalData, crystalActivity, sqp.DetectorRadius(), phantomLength, detectorMaterial, simulationWindow, coincidenceWindow )
@@ -132,51 +129,19 @@ def PeakNECRWithLengthMultiprocess( isotope, phantomLength, detectorMaterial, si
         realLengths.append( entry[1] )
     return realLengths, maxNECR
 
-trialPhantoms = [ 300, 700, 1100, 1500 ]
-
-isotopes = ["C11", "N13", "O15", "F18", "Ga68", "Rb82"]
-# isotopes = ["F18"]
-simWin = 1E-3
-
-# for isotope in isotopes:
-#     detectorLengths = []
-#     maxNECRlines = []
-
-#     if isotope == "O15" or isotope == "Rb82" or isotope == "N13":
-#             simWin = 1E-1
-    
-#     for phantomLength in trialPhantoms:
-#         detectorLengths, maxNECR = PeakNECRWithLengthMultiprocess( isotope, phantomLength, detectorMaterial, simulationWindow=simWin, coincidenceWindow=4.7E-9 )
-#         maxNECRlines.append( maxNECR )
-
-#     for i, phantomLength in enumerate( trialPhantoms ):
-#         mpl.plot( detectorLengths, [val * 0.001 for val in maxNECRlines[i]], label=phantomLength, linewidth=4.0 )
-
-#     mpl.xlabel( "Detector length [mm]" )
-#     mpl.ylabel( "Max NECR [kcps]" )
-#     mpl.legend( trialPhantoms, title="Source length [mm]" )
-#     mpl.gcf().set_size_inches( 10, 10 )
-#     figName = 'NECRvsLength_' + isotope + '.pdf'
-#     mpl.savefig(figName)
-#     mpl.clf()
-
 ##########################################################
-phantomLength = 700
-datasetSize = 10000
 crystalData = None
 crystalActivity = None
-detectorLength = 1024
 #calculate crystal activity and create crystalDataset only if the crystal is radioactive
 #if crystal is Lutetium-based
 if detectorMaterial == "LSO" or detectorMaterial == "LYSO" :
     crystalActivity= sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
-    crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, 435.0, 585.0, detectorMaterial )
+    crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, siemensEmin, siemensEmax, detectorMaterial )
 # if crystal is Caesium-based
 if detectorMaterial == "eCsI":
     crystalActivity= sqp.Cs137decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ), 0.01 )
-    crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, 435.0, 585.0, detectorMaterial )
+    crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", datasetSize, siemensEmin, siemensEmax, detectorMaterial )
 
-# crystalData = CreateDataset( 1024, "Siemens", phantomLength, "Siemens", datasetSize, siemensEmin, siemensEmax, detectorMaterial )
 activityList = []
 maxNECRlines = []
 for isotope in isotopes:
@@ -211,13 +176,14 @@ for isotope in isotopes:
 mpl.clf()
 for i, isotope in enumerate( isotopes ):
     mpl.plot( activityList[i], [val * 0.001 for val in maxNECRlines[i]], label=isotope, linewidth=4.0 )
+    df = pd.DataFrame(list(zip(*[activityList[i], maxNECRlines[i]])))
+    df.columns=["activity", "NECR"]
+    csvName = "tracerNECR_" + isotope + ".csv"
+    df.to_csv(csvName, index=False)
 
 mpl.legend( isotopes, title="Isotopes" )
 mpl.xlim( [ 0, 20000 ] )
 mpl.xlabel( "Activity [Bq/ml]" )
-mpl.ylabel( "Counts [kcps]" )
+mpl.ylabel( "Max NECR [kcps]" )
 mpl.gcf().set_size_inches(10, 10)
 mpl.savefig("TracerNECR.pdf")
-
-# ################################################
-
