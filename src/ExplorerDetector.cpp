@@ -17,7 +17,10 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   // Default length
   if ( LengthMM <= 0.0 )
   {
-    LengthMM = 1872.92;//1940.0;
+    LengthMM = 1872.0;//1940.0;
+    //full length is 1940mm which includes gaps inside blocks; this is not yet implemented
+    //to make the code work correctly for default length it is defined as 1872.0 
+    //although without the gaps the length is 1872.92
   }
 
   // Materials
