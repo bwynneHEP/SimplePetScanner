@@ -23,7 +23,7 @@ G4VPhysicalVolume* ExplorerDetector::Construct( std::string Name, G4LogicalVolum
   // Materials
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
-  G4Material* crystal = CrystalMaterial::GetCrystalMaterial(Material);
+  G4Material* crystal = CrystalMaterial::GetCrystalMaterial(Material, "Explorer");
 
   std::cout << "Selected detector material: " << crystal->GetName() << std::endl;
 

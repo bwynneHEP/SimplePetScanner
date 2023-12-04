@@ -60,6 +60,9 @@ If a linear radioisotope source is selected, the length of the capillary will be
 ### --outputFileName
 Override the default output file name (hits.csv) to allow multiprocessing.
 
+### --decayOutputFileName
+Create output csv file containing the information about the radioactive decay. For now it includes only the values of the positron range for each event. The file is created only if this argument is specified in the running command. 
+
 ### --randomSeed
 Override the default random seed.
 

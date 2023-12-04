@@ -6,7 +6,7 @@
 
 namespace CrystalMaterial{
 
-G4Material* GetCrystalMaterial(const std::string& Material){
+G4Material* GetCrystalMaterial(const std::string& Material, const std::string& Detector){
     // Materials
   G4NistManager* nistManager = G4NistManager::Instance();
   G4bool isotopes = false;
@@ -50,9 +50,6 @@ G4Material* GetCrystalMaterial(const std::string& Material){
   G4Material* eCsI = new G4Material("eCsI", 4.51*g/cm3, 2);
   eCsI->AddElement(eCs, 1);
   eCsI->AddElement(I, 1);
-  // std::cout << *(G4Isotope::GetIsotopeTable()) << std::endl;
-  // std::cout << *(G4Element::GetElementTable()) << std::endl;
-  // std::cout << *(G4Material::GetMaterialTable()) << std::endl;
 
   G4Material* BaF2 = nistManager->FindOrBuildMaterial("G4_BARIUM_FLUORIDE");
 
@@ -141,9 +138,11 @@ G4Material* GetCrystalMaterial(const std::string& Material){
   };
 
   if (auto search = materialMap.find(Material); search != materialMap.end())
-        crystal = search->second;
-  else if (Material == "")
+    crystal = search->second;
+  else if (Material.empty() && Detector == "Siemens")
     crystal = LSO;
+  else if (Material.empty() && Detector == "Explorer")
+    crystal = LYSO;
   else {
     std::cerr << "Unrecognised detector material: " << Material << std::endl;
     exit(1);
