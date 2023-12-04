@@ -3,6 +3,7 @@
 hits*.csv
 *.txt
 build/
+analysis-scripts-*/
 
 # but not these:
 !build/initial

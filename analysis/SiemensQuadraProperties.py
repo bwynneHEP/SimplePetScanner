@@ -36,3 +36,20 @@ def Lu176decaysInMass( Mass ):
   Lu176halfYears = 3.76E10
   Lu176halfSec = Lu176halfYears * 3.154E7
   return Lu176atomsInMass( Mass ) * math.log(2.0) / Lu176halfSec
+
+def CsIunitsInMass( Mass ):
+  CsImoleGram = 132.91 + 126.90 # Cs I
+  NAvogadro = 6.022E23
+  return NAvogadro * Mass / CsImoleGram
+
+def CsatomsInMass( Mass ):
+  CsatomsInCsI = 1.0
+  return CsatomsInCsI * CsIunitsInMass( Mass )
+
+def Cs137atomsInMass( Mass, Cs137Abundance ):
+  return CsatomsInMass( Mass ) * Cs137Abundance
+
+def Cs137decaysInMass( Mass, Cs137Abundance ):
+  Cs137halfYears = 30.17
+  Cs137halfSec = Cs137halfYears * 3.154E7
+  return Cs137atomsInMass( Mass, Cs137Abundance ) * math.log(2.0) / Cs137halfSec
