@@ -17,7 +17,7 @@ ExplorerParameterisationCrystals::ExplorerParameterisationCrystals( G4int nCopie
   {
     // 32 rings in the detector
     G4int const crystalsPerRing = 70560;
-    G4int const blocksPerRing = 24;
+    G4int const blocksPerRing = 24; // modules per ring in paper naming convention
     G4int const ring = floor( copyNo / crystalsPerRing );
     G4int const nRings = ceil( nCopies / crystalsPerRing );
     G4int const inRing = copyNo % crystalsPerRing;
@@ -28,9 +28,10 @@ ExplorerParameterisationCrystals::ExplorerParameterisationCrystals( G4int nCopie
     G4int const inBlock = inRing % crystalsPerBlock;
 
     // mini-blocks are 6x7 crystals, arranged into 14x5 blocks
+    // mini-block is a matrix of crystals in paper naming convention
     // blocks are therefore 84x35
-    G4int const crystalsBlockAxial = 84;
-    G4int const crystalsBlockTrans = 35;
+    G4int const crystalsBlockAxial = 84;//14x6 //crystal module axial
+    G4int const crystalsBlockTrans = 35;//7x5 //crystal module transaxial 
     G4int const blockTrans = floor( inBlock / crystalsBlockAxial );
     G4int const blockAxial = inBlock % crystalsBlockAxial;
 
@@ -38,7 +39,7 @@ ExplorerParameterisationCrystals::ExplorerParameterisationCrystals( G4int nCopie
     G4double const deltaPhi = 360.0 * deg / G4double( blocksPerRing );
     G4double const phi = deltaPhi * G4double( block );
 
-    G4double const ringOffset = 2.6*mm;
+    G4double const ringOffset = 2.6*mm; //unit offset
 
     // Z position is ring itself
     G4double const crystalWidth = 2.76 * mm;

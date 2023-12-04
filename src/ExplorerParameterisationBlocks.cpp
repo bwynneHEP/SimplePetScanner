@@ -16,7 +16,7 @@ ExplorerParameterisationBlocks::ExplorerParameterisationBlocks( G4int nCopies )
   for ( G4int copyNo = 0; copyNo < nCopies; ++copyNo )
   {
     // 32 rings in the detector
-    G4int const blocksPerRing = 24;
+    G4int const blocksPerRing = 24; //modules per ring in paper naming convention
     G4int const ring = floor( copyNo / blocksPerRing );
     G4int const nRings = ceil( nCopies / blocksPerRing );
     G4int const inRing = copyNo % blocksPerRing;
