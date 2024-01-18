@@ -5,6 +5,7 @@
 #include "G4Types.hh"
 
 #include <fstream>
+#include <vector>
 
 // Finds the first new track with a non-zero global time
 class DecayTimeFinderAction : public G4UserStackingAction
