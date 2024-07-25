@@ -146,9 +146,23 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, CoincidenceWindow=0.0 ):
+def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed=1234, Path="" ):
+
+  # Allow creation at arbitrary path
+  outputFileName = ""
+  if Path != "":
+    if os.path.isdir( Path ):
+      outputFileName = Path + "/"
+    else:
+      print( "Skipping dataset generation: unable to access path " + Path )
+      return None
+
+  # Allow for other detector granularity, but default to block
+  if not ( ("Block" in Detector) or ("Panel" in Detector) or ("Crystal" in Detector) ):
+      Detector += "Block"
+
   # Phantom length affects the attenuating material, so include it even if source is detector
-  outputFileName = "hits.n" + str(TotalDecays) + "." + Detector + "Block." + str(DetectorLengthMM) + "mm."
+  outputFileName += "hits.n" + str(TotalDecays) + "." + Detector + "." + str(DetectorLengthMM) + "mm."
   # Hanna: printing detector name commented out to have common naming convention
   # if DetectorMaterial != "":
   #   outputFileName += DetectorMaterial + "."
@@ -160,7 +174,7 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
   else:
     command =  "../build/SimplePetScanner"
     command += " -n " + str(TotalDecays)
-    command += " --detector " + Detector + "Block"
+    command += " --detector " + Detector
     command += " --detectorLengthMM " + str(DetectorLengthMM)
     command += " --source " + Source
     command += " --phantomLengthMM " + str(SourceLengthMM)
@@ -172,7 +186,15 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
     process.wait() # Later can do some multiprocess stuff
     if process.returncode == 0:
       print( "Simulation complete" )
+      return outputFileName
     else:
       print( "Simulation failed with return code: ", process.returncode )
+      return ""
+
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectoriMaterial, Seed=1234, CoincidenceWindow=0.0, Path="" ):
+
+  outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path )
+  if outputFileName == "":
       return None
+
   return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, CoincidenceWindow )
