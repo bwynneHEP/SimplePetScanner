@@ -220,8 +220,8 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0, EnergyMi
   return math.fabs( rMin ) <= RMax
 
 # Note that this definition specifically applies to central, linear phantoms only
-def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
-  return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
+def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, EnergyMin=None, EnergyMax=None ):
+  return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0, EnergyMin=None, EnergyMax=None )
 
 def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed=1234, Path="" ):
 
