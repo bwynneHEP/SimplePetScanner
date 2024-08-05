@@ -26,10 +26,14 @@ class SimulationDataset:
     self.energyMax = EnergyMax
     self.energyWarn = True
     self.totalDecays = TotalDecays
-    currentEvent = -1
+    self.hitCount = 0
 
-    eventCount = 0.0
-    hitCount = 0.0
+    if TotalDecays < 1:
+      print( "ERROR: Requesting an empty dataset" )
+      return
+
+    currentEvent = -1
+    eventCount = 0
 
     # Parse input
     inputFile = open( InputPath )
@@ -57,18 +61,15 @@ class SimulationDataset:
         # Start a new event
         self.inputData[ eventID ] = [ wholeHit ]
         currentEvent = eventID
-        eventCount += 1.0
-      hitCount += 1.0
+        eventCount += 1
+        self.hitCount += 1
 
     inputFile.close()
 
     # Apply energy cut to last event
     self.EnergyCut( currentEvent, EnergyMin, EnergyMax )
 
-    if eventCount > 0:
-      print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( hitCount / eventCount ) + " hits/event" )
-    else:
-      print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated)" )
+    print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( self.hitCount / self.totalDecays ) + " hits/event" )
 
     # Allow for decays that weren't detected
     for i in range( self.totalDecays ):
@@ -85,8 +86,10 @@ class SimulationDataset:
       keepHit = True
       if EnergyMin is not None and hit[DATASET_ENERGY] < EnergyMin:
         keepHit = False
+        self.hitCount -= 1
       if EnergyMax is not None and hit[DATASET_ENERGY] > EnergyMax:
         keepHit = False
+        self.hitCount -= 1
       if keepHit:
         cutEvent.append( hit )
 
@@ -97,6 +100,7 @@ class SimulationDataset:
 
     if ClusterLimitMM is None:
       self.inputData[ ExistingEventID ].append( NewHit )
+      self.hitCount += 1
 
     else:
       oldEvent = self.inputData[ ExistingEventID ]
@@ -130,6 +134,7 @@ class SimulationDataset:
 
       if keepHit:
         self.inputData[ ExistingEventID ].append( NewHit )
+        self.hitCount += 1
 
 
   def SampleOneEvent( self, EnergyResolution=0.0, TimeResolution=0.0 ):
