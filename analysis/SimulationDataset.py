@@ -7,6 +7,9 @@
 # so
 # EventID ModuleID Energy Time R Phi Z
 
+DATASET_EVENT, DATASET_MODULE, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z = 0, 1, 2, 3, 4, 5, 6
+
+
 import random
 import math
 import subprocess
@@ -15,67 +18,119 @@ import numpy as np
 
 class SimulationDataset:
 
-  def __init__( self, InputPath, TotalDecays, EnergyMin, EnergyMax, CoincidenceWindow=0.0 ):
+  def __init__( self, InputPath, TotalDecays, EnergyMin=None, EnergyMax=None, ClusterLimitMM=None ):
     self.inputData = {}
     self.unusedEvents = []
     self.usedEvents = []
+    self.energyMin = EnergyMin
+    self.energyMax = EnergyMax
+    self.energyWarn = True
     self.totalDecays = TotalDecays
+    currentEvent = -1
 
-    CoincidenceWindow *= 1E9 #nanoseconds
     eventCount = 0.0
     hitCount = 0.0
-    currentEvent = -1
-    eventStartTime = 0.0
 
     # Parse input
     inputFile = open( InputPath )
     for line in inputFile:
+
       splitLine = line.split(" ")
 
-      eventID = int( splitLine[0] )
-      moduleID = int( splitLine[1] )
-      energyKeV = float( splitLine[2] )
-      timeNS = float( splitLine[3] )
+      # Assemble hit info
+      eventID = int( splitLine[DATASET_EVENT] )
+      moduleID = splitLine[DATASET_MODULE]
+      wholeHit = [ eventID, moduleID ] # Not floats
+      for i in range( 2, len( splitLine ) ):
+        wholeHit.append( float( splitLine[i] ) )
 
-      # If the file is ordered (it should be) then events will be contiguous
-      if eventID == currentEvent:
-        # Find the earliest time in the current event
-        eventStartTime = min( eventStartTime, timeNS )
+      # Multiple lines (hits) can go into a single event
+      if eventID in self.inputData:
+        self.AddHit( eventID, wholeHit, ClusterLimitMM )
       else:
-        # Apply the time cut to the old event
-        if CoincidenceWindow > 0.0 and currentEvent in self.inputData:
-          for hit in self.inputData[ currentEvent ]:
-            if hit[2] > eventStartTime + CoincidenceWindow:
-              self.inputData[ currentEvent ].remove( hit )
+        # Input file should be ordered and thus old event complete
+
+        # Apply old-style energy cut so that old results will work
+        if currentEvent > -1:
+          self.EnergyCut( currentEvent, EnergyMin, EnergyMax )
 
         # Start a new event
-        eventStartTime = timeNS
+        self.inputData[ eventID ] = [ wholeHit ]
         currentEvent = eventID
-
-      # Do the energy window on loading to keep RAM down
-      if energyKeV >= EnergyMin and energyKeV <= EnergyMax:
-        wholeEvent = [ eventID, moduleID, energyKeV, timeNS ]
-        for i in range( 4, len( splitLine ) ):
-          wholeEvent.append( float( splitLine[i] ) )
-
-        # Multiple lines (hits) can go into a single event
-        if eventID in self.inputData:
-          self.inputData[ eventID ].append( wholeEvent )
-        else:
-          self.inputData[ eventID ] = [ wholeEvent ]
-          eventCount += 1.0
-        hitCount += 1.0
+        eventCount += 1.0
+      hitCount += 1.0
 
     inputFile.close()
+
+    # Apply energy cut to last event
+    self.EnergyCut( currentEvent, EnergyMin, EnergyMax )
 
     if eventCount > 0:
       print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( hitCount / eventCount ) + " hits/event" )
     else:
       print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated)" )
 
-    # Allow for decays that don't enter the energy window
+    # Allow for decays that weren't detected
     for i in range( self.totalDecays ):
       self.unusedEvents.append( i )
+
+
+  def EnergyCut( self, EventID, EnergyMin, EnergyMax ):
+
+    if EnergyMin is None and EnergyMax is None:
+      return
+
+    cutEvent = []
+    for hit in self.inputData[ EventID ]:
+      keepHit = True
+      if EnergyMin is not None and hit[DATASET_ENERGY] < EnergyMin:
+        keepHit = False
+      if EnergyMax is not None and hit[DATASET_ENERGY] > EnergyMax:
+        keepHit = False
+      if keepHit:
+        cutEvent.append( hit )
+
+    self.inputData[ EventID ] = cutEvent
+
+
+  def AddHit( self, ExistingEventID, NewHit, ClusterLimitMM ):
+
+    if ClusterLimitMM is None:
+      self.inputData[ ExistingEventID ].append( NewHit )
+
+    else:
+      oldEvent = self.inputData[ ExistingEventID ]
+      newE = NewHit[DATASET_ENERGY]
+      newZ = NewHit[DATASET_Z]
+      newPhi = NewHit[DATASET_PHI]
+      newR = NewHit[DATASET_R]
+      keepHit = True
+
+      # Attempt to add hit to each hit to the new event
+      for oldHitIndex, oldHit in enumerate( oldEvent ):
+        oldE = oldHit[DATASET_ENERGY]
+        oldZ = oldHit[DATASET_Z]
+        oldPhi = oldHit[DATASET_PHI]
+        oldR = oldHit[DATASET_R]
+        deltaZ = newZ-oldZ
+        deltaPhiR = (newPhi*newR)-(oldPhi*oldR)
+        delta = math.sqrt( deltaZ*deltaZ + deltaPhiR*deltaPhiR )
+
+        # Merge hits within threshold
+        if delta < ClusterLimitMM:
+          mergedE = newE + oldE
+          mergedZ = ( newE*newZ + oldE*oldZ ) / mergedE
+          mergedPhi = ( newE*newPhi + oldE*oldPhi ) / mergedE
+          mergedR = ( newE*newR + oldE*oldR ) / mergedE
+          mergedT = ( newE*NewHit[DATASET_TIME] + oldE*oldHit[DATASET_TIME] ) / mergedE
+          mergedMOD = oldHit[DATASET_MODULE] + "+" + NewHit[DATASET_MODULE]
+          self.inputData[ ExistingEventID ][ oldHitIndex ] = [ oldHit[DATASET_EVENT], mergedMOD, mergedE, mergedT, mergedR, mergedPhi, mergedZ ]
+          keepHit = False
+          break
+
+      if keepHit:
+        self.inputData[ ExistingEventID ].append( NewHit )
+
 
   def SampleOneEvent( self, EnergyResolution=0.0, TimeResolution=0.0 ):
 
@@ -90,11 +145,19 @@ class SimulationDataset:
     if eventID in self.inputData:
       if EnergyResolution > 0.0 or TimeResolution > 0.0:
 
+        # Warn about potential mistake
+        if EnergyResolution > 0.0 and self.energyWarn and (self.energyMin is not None or self.energyMax is not None):
+          print( "WARNING: applying energy resolution to a dataset with internal energy cuts can cause migration issues" )
+          print( "Existing cuts: " + str( self.energyMin ) + "keV - " + str( self.energyMax ) + "keV" )
+          print( "Consider how this affects your final selection with energy resolution " + str( EnergyResolution ) + "%" )
+          self.energyWarn = False
+
         modifiedEvent = []
         for photon in self.inputData[ eventID ]:
-          newEnergy = photon[2] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
-          newTime = photon[3] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
-          modifiedEvent += [[ photon[0], photon[1], newEnergy, newTime, photon[4], photon[5], photon[6] ]]
+          newPhoton = [ value for value in photon ]
+          newPhoton[DATASET_ENERGY] = photon[DATASET_ENERGY] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
+          newPhoton[DATASET_TIME] = photon[DATASET_TIME] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
+          modifiedEvent.append( newPhoton )
         return modifiedEvent
 
       else:
@@ -105,18 +168,16 @@ class SimulationDataset:
   def size( self ):
     return self.totalDecays
 
-def SameEventID( Event ): 
-  if (Event[0][0] == Event[1][0]) :
-    return True
-  return False
+def SameEventID( Event ):
+  return Event[0][DATASET_EVENT] == Event[1][DATASET_EVENT]
 
 def FindHitRadius( Event, DetectorRadius ):
   if len( Event ) != 2:
     return -1.0
 
   # Calculate delta phi
-  phi1 = Event[0][5]
-  phi2 = Event[1][5]
+  phi1 = Event[0][DATASET_PHI]
+  phi2 = Event[1][DATASET_PHI]
   deltaPhi = phi1 - phi2
   while deltaPhi > math.pi:
     deltaPhi -= 2.0 * math.pi
@@ -128,21 +189,32 @@ def FindHitRadius( Event, DetectorRadius ):
   else:
     return DetectorRadius * math.cos( deltaPhi/2.0 )
 
-def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
-  
+def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0, EnergyMin=None, EnergyMax=None ):
+
   if len( Event ) != 2:
     return False
 
+  # If there's an energy cut, apply it
+  energy1 = Event[0][DATASET_ENERGY]
+  energy2 = Event[1][DATASET_ENERGY]
+  if EnergyMin is not None:
+    if energy1 < energyMin or energy2 < energyMin:
+      return False
+  if EnergyMax is not None:
+    if energy1 > energyMax or energy2 > energyMax:
+      return False
+
   # If there's a z-cut, apply it
   if ZMin != ZMax:
-    meanZ = ( Event[0][6] + Event[1][6] ) / 2.0
+    meanZ = ( Event[0][DATASET_Z] + Event[1][DATASET_Z] ) / 2.0
     if meanZ < ZMin or meanZ > ZMax:
       return False
-  
+
   # Cut on the radius of closest approach
   rMin = FindHitRadius( Event, DetectorRadius )
   return math.fabs( rMin ) <= RMax
 
+# Note that this definition specifically applies to central, linear phantoms only
 def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
   return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
@@ -171,7 +243,9 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
   # Check if file already present (in which case assume it's re-usable)
   if os.path.exists( outputFileName ):
     print( "Re-using previous simulation" )
+    return outputFileName
   else:
+    print( "Creating dataset " + outputFileName )
     command =  "../build/SimplePetScanner"
     command += " -n " + str(TotalDecays)
     command += " --detector " + Detector
@@ -183,7 +257,8 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
     if DetectorMaterial != "":
       command += " --detectorMaterial " + DetectorMaterial
     process = subprocess.Popen( command, shell=True )
-    process.wait() # Later can do some multiprocess stuff
+    process.wait()
+
     if process.returncode == 0:
       print( "Simulation complete" )
       return outputFileName
@@ -191,10 +266,19 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
       print( "Simulation failed with return code: ", process.returncode )
       return ""
 
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectoriMaterial, Seed=1234, CoincidenceWindow=0.0, Path="" ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None ):
 
   outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path )
   if outputFileName == "":
       return None
 
-  return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, CoincidenceWindow )
+  CLUS_DEFAULT=20
+  if "Crystal" in Detector:
+    if ClusterLimitMM is None:
+      print( "Using a high-granularity \"Crystal\" detector geometry with no clusterisation" )
+      print( "Setting to recommended value (" + str(CLUS_DEFAULT) + "mm), specify 0 to override" )
+      ClusterLimitMM = CLUS_DEFAULT
+    else:
+      print( "Using a high-granularity \"Crystal\" detector geometry with clusterisation at " + str(ClusterLimitMM) + "mm" )
+
+  return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, ClusterLimitMM )
