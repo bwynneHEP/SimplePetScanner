@@ -24,7 +24,6 @@ class SimulationDataset:
     self.usedEvents = []
     self.energyMin = EnergyMin
     self.energyMax = EnergyMax
-    self.energyWarn = True
     self.totalDecays = TotalDecays
     self.hitCount = 0
 
@@ -53,11 +52,6 @@ class SimulationDataset:
         self.AddHit( eventID, wholeHit, ClusterLimitMM )
       else:
         # Input file should be ordered and thus old event complete
-
-        # Apply old-style energy cut so that old results will work
-        if currentEvent > -1:
-          self.EnergyCut( currentEvent, EnergyMin, EnergyMax )
-
         # Start a new event
         self.inputData[ eventID ] = [ wholeHit ]
         currentEvent = eventID
@@ -66,34 +60,11 @@ class SimulationDataset:
 
     inputFile.close()
 
-    # Apply energy cut to last event
-    self.EnergyCut( currentEvent, EnergyMin, EnergyMax )
-
     print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( self.hitCount / self.totalDecays ) + " hits/event" )
 
     # Allow for decays that weren't detected
     for i in range( self.totalDecays ):
       self.unusedEvents.append( i )
-
-
-  def EnergyCut( self, EventID, EnergyMin, EnergyMax ):
-
-    if EnergyMin is None and EnergyMax is None:
-      return
-
-    cutEvent = []
-    for hit in self.inputData[ EventID ]:
-      keepHit = True
-      if EnergyMin is not None and hit[DATASET_ENERGY] < EnergyMin:
-        keepHit = False
-        self.hitCount -= 1
-      if EnergyMax is not None and hit[DATASET_ENERGY] > EnergyMax:
-        keepHit = False
-        self.hitCount -= 1
-      if keepHit:
-        cutEvent.append( hit )
-
-    self.inputData[ EventID ] = cutEvent
 
 
   def AddHit( self, ExistingEventID, NewHit, ClusterLimitMM ):
@@ -148,35 +119,42 @@ class SimulationDataset:
     eventID = self.unusedEvents.pop(-1)
     self.usedEvents.append( eventID )
     if eventID in self.inputData:
-      if EnergyResolution > 0.0 or TimeResolution > 0.0:
 
-        # Warn about potential mistake
-        if EnergyResolution > 0.0 and self.energyWarn and (self.energyMin is not None or self.energyMax is not None):
-          print( "WARNING: applying energy resolution to a dataset with internal energy cuts can cause migration issues" )
-          print( "Existing cuts: " + str( self.energyMin ) + "keV - " + str( self.energyMax ) + "keV" )
-          print( "Consider how this affects your final selection with energy resolution " + str( EnergyResolution ) + "%" )
-          self.energyWarn = False
+      modifiedEvent = []
+      for photon in self.inputData[ eventID ]:
 
-        modifiedEvent = []
-        for photon in self.inputData[ eventID ]:
-          newPhoton = [ value for value in photon ]
-          newPhoton[DATASET_ENERGY] = photon[DATASET_ENERGY] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
-          newPhoton[DATASET_TIME] = photon[DATASET_TIME] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
+        # Apply resolution effects to each measured photon
+        newPhoton = [ value for value in photon ]
+        newPhoton[DATASET_ENERGY] = photon[DATASET_ENERGY] * ( 1 + np.random.normal( 0.0, EnergyResolution ) ) # Energy resolution as a percentage
+        newPhoton[DATASET_TIME] = photon[DATASET_TIME] + ( np.random.normal( 0.0, TimeResolution ) ) # Time resolution as absolute ns
+
+        # Apply energy cut to modified photon
+        keepPhoton = True
+        if self.energyMin is not None and newPhoton[DATASET_ENERGY] < self.energyMin:
+          keepPhoton = False
+        if self.energyMax is not None and newPhoton[DATASET_ENERGY] > self.energyMax:
+          keepPhoton = False
+        if keepPhoton:
           modifiedEvent.append( newPhoton )
-        return modifiedEvent
+      return modifiedEvent
 
-      else:
-        return self.inputData[ eventID ]
     else:
       return []
+
 
   def size( self ):
     return self.totalDecays
 
+#
+# End of the class, now just defining general methods
+#
+
 def SameEventID( Event ):
   return Event[0][DATASET_EVENT] == Event[1][DATASET_EVENT]
 
+
 def FindHitRadius( Event, DetectorRadius ):
+
   if len( Event ) != 2:
     return -1.0
 
@@ -194,20 +172,11 @@ def FindHitRadius( Event, DetectorRadius ):
   else:
     return DetectorRadius * math.cos( deltaPhi/2.0 )
 
-def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0, EnergyMin=None, EnergyMax=None ):
+
+def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0 ):
 
   if len( Event ) != 2:
     return False
-
-  # If there's an energy cut, apply it
-  energy1 = Event[0][DATASET_ENERGY]
-  energy2 = Event[1][DATASET_ENERGY]
-  if EnergyMin is not None:
-    if energy1 < energyMin or energy2 < energyMin:
-      return False
-  if EnergyMax is not None:
-    if energy1 > energyMax or energy2 > energyMax:
-      return False
 
   # If there's a z-cut, apply it
   if ZMin != ZMax:
@@ -219,10 +188,13 @@ def TwoHitEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, RMax=120.0, EnergyMi
   rMin = FindHitRadius( Event, DetectorRadius )
   return math.fabs( rMin ) <= RMax
 
+# Outdated approach
 # Note that this definition specifically applies to central, linear phantoms only
-def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0, EnergyMin=None, EnergyMax=None ):
-  return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0, EnergyMin=None, EnergyMax=None )
+def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
+  return TwoHitEvent( Event, DetectorRadius, ZMin, ZMax, RMax=20.0 )
 
+
+# Launch the Geant4 simulation
 def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed=1234, Path="" ):
 
   # Allow creation at arbitrary path
@@ -271,7 +243,9 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
       print( "Simulation failed with return code: ", process.returncode )
       return ""
 
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None ):
+
+# Create a dataset class from new or existing simulated input
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial=, Seed=1234, Path="", ClusterLimitMM=None ):
 
   outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path )
   if outputFileName == "":
