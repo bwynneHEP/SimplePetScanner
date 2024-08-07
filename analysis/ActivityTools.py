@@ -1,4 +1,5 @@
 import PhysicsConstants as PC
+from SimulationDataset import *
 
 # Times in seconds
 def ActivityAtTime( StartingActivity, TimeElapsed, HalfLife ):
@@ -120,7 +121,8 @@ def NECRFromHistogram( bins, values, SimulationWindow ):
 import matplotlib.pyplot as mpl
 
 # base the coincidence window on whether the decay actually triggers the detector
-def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0, UsePhotonTime=False, EnergyResolution=0.0, TimeResolution=0.0 ):
+def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWindow, DetectorRadius, ZMin=0.0, ZMax=0.0,
+                          UsePhotonTime=False, EnergyResolution=0.0, TimeResolution=0.0 ):
     hitRadii = []
     sameEventIDArray = []
     trueEvents = 0
@@ -170,7 +172,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
         detectionTimes = []
         if UsePhotonTime:
             for photon in event:
-                detectionTimes.append( time + (photon[3]*1E-9) )
+                detectionTimes.append( time + (photon[DATASET_TIME]*1E-9) )
 
         # Don't start a coincidence window if the event didn't pass cuts
         if len( event ) == 0:
@@ -186,7 +188,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
                 event += newDecay
                 if UsePhotonTime:
                     for photon in newDecay:
-                        detectionTimes.append( nextTime + (photon[3]*1E-9) )
+                        detectionTimes.append( nextTime + (photon[DATASET_TIME]*1E-9) )
 
                 # Update to next time point
                 nextTime += DeltaT( DecayRates[ channelIndex ] )
@@ -266,6 +268,7 @@ def DetectedCoincidences( DecayRates, DecayData, SimulationWindow, CoincidenceWi
         if val == True:
             hitRadiiCoinc.append(hitRadii[i])
     y, x, patches = mpl.hist( hitRadiiCoinc, bins=26, range=[-130, 130] )
+    mpl.clf()
     NECRTmp, truesTmp, scattersInSimWin = NECRFromHistogram( x, y, SimulationWindow)
     randomsInSimWin = rPlusSInSimWin - scattersInSimWin
 
