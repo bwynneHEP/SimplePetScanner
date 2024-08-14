@@ -7,6 +7,7 @@
 #include "QGSP_BERT_HP.hh"
 #include "LBE.hh"
 #include "QBBC.hh"
+#include "G4OpticalPhysics.hh"
 #include "G4StepLimiterPhysics.hh"
 #include "G4RadioactiveDecayPhysics.hh"
 #include "Randomize.hh"
@@ -151,6 +152,7 @@ int main( int argc, char* argv[] )
   G4VModularPhysicsList* physicsList = new QBBC();
   physicsList->RegisterPhysics( new G4StepLimiterPhysics() );
   physicsList->RegisterPhysics( new G4RadioactiveDecayPhysics() ); // For the tracers
+  physicsList->RegisterPhysics( new G4OpticalPhysics() ); // For optical photons
   runManager->SetUserInitialization( physicsList );
 
   // Set user action classes

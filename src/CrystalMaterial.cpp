@@ -21,6 +21,21 @@ G4Material* GetCrystalMaterial(const std::string& Material, const std::string& D
   LSO->AddElement( Si, 1 );
   LSO->AddElement( O , 5 );
 
+    // From https://github.com/hannah794/Scintillator/blob/main/src/construction.cc
+    G4MaterialPropertiesTable* MPT_LSO = new G4MaterialPropertiesTable();
+    std::vector<G4double> photonEnergy = {2.07*eV, 3.26*eV}; // taken from emission spectrum and corresponds to wavelengths 380-600nm
+    std::vector<G4double> rIndex = {1.82, 1.82}; // assuming that stable over different wavelengths
+    // std::vector<G4double> absLength = {0.5*cm, 0.5*cm}; //value for testing
+    std::vector<G4double> absLength = {1.15*cm, 1.15*cm}; //assuming that stable over different wavelengths
+    std::vector<G4double> scintilFast = {1.00, 1.00};
+    MPT_LSO->AddProperty("RINDEX", photonEnergy, rIndex);
+    MPT_LSO->AddProperty("ABSLENGTH", photonEnergy, absLength);
+    MPT_LSO->AddConstProperty("SCINTILLATIONYIELD",30./keV); //assuming that it is independent of the incident particle
+    MPT_LSO->AddProperty("SCINTILLATIONCOMPONENT1",photonEnergy, scintilFast);
+    MPT_LSO->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 40.*ns);
+    MPT_LSO->AddConstProperty("RESOLUTIONSCALE",0.00); //variation of the number of photons produced at step, if 0 then no fluctuation
+    LSO->SetMaterialPropertiesTable(MPT_LSO);
+
   G4Element* Y  = nistManager->FindOrBuildElement( "Y" , isotopes );
   G4Material* LYSO = new G4Material( "LYSO", 7.1*g/cm3, 4 );
   LYSO->AddElement( Lu, 71.447 * perCent );
