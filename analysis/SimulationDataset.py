@@ -16,6 +16,56 @@ import subprocess
 import os
 import numpy as np
 
+
+class CsvFileReader:
+
+  def __init__( self, InputPath ):
+    self.inputFile = open( InputPath )
+    self.nextLine = self.inputFile.readline()
+    self.currentEvent = []
+
+  def __del__( self ):
+    self.inputFile.close()
+
+  def Open( self ):
+    return self.nextLine != ""
+
+  def ReadHit( self ):
+    if not self.Open():
+      return None
+
+    splitLine = self.nextLine.split(" ")
+
+    # Assemble hit info
+    eventID = int( splitLine[DATASET_EVENT] )
+    moduleID = splitLine[DATASET_MODULE]
+    wholeHit = [ eventID, moduleID ] # Not floats
+    for i in range( 2, len( splitLine ) ):
+      wholeHit.append( float( splitLine[i] ) )
+
+    self.nextLine = self.inputFile.readline()
+    return wholeHit
+
+  def ReadEvent( self ):
+    if not self.Open():
+      return None
+
+    if len( self.currentEvent ) == 0:
+      self.currentEvent.append( self.ReadHit() )
+
+    while True:
+      newHit = self.ReadHit()
+      if newHit is None:
+        return self.currentEvent
+
+      if newHit[DATASET_EVENT] == self.currentEvent[0][DATASET_EVENT]:
+        self.currentEvent.append( newHit )
+      else:
+        newEvent = self.currentEvent
+        self.currentEvent = [newHit]
+        return newEvent
+
+
 class SimulationDataset:
 
   def __init__( self, InputPath, TotalDecays, EnergyMin=None, EnergyMax=None, ClusterLimitMM=None ):
@@ -35,17 +85,11 @@ class SimulationDataset:
     eventCount = 0
 
     # Parse input
-    inputFile = open( InputPath )
-    for line in inputFile:
+    inputFile = CsvFileReader( InputPath )
+    while inputFile.Open():
 
-      splitLine = line.split(" ")
-
-      # Assemble hit info
-      eventID = int( splitLine[DATASET_EVENT] )
-      moduleID = splitLine[DATASET_MODULE]
-      wholeHit = [ eventID, moduleID ] # Not floats
-      for i in range( 2, len( splitLine ) ):
-        wholeHit.append( float( splitLine[i] ) )
+      wholeHit = inputFile.ReadHit()
+      eventID = wholeHit[ DATASET_EVENT ]
 
       # Multiple lines (hits) can go into a single event
       if eventID in self.inputData:
@@ -57,8 +101,6 @@ class SimulationDataset:
         currentEvent = eventID
         eventCount += 1
         self.hitCount += 1
-
-    inputFile.close()
 
     print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( self.hitCount / self.totalDecays ) + " hits/event" )
 
@@ -245,7 +287,7 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
 
 
 # Create a dataset class from new or existing simulated input
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial=, Seed=1234, Path="", ClusterLimitMM=None ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None ):
 
   outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path )
   if outputFileName == "":
