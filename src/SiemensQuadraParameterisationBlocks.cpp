@@ -52,7 +52,7 @@ SiemensQuadraParameterisationBlocks::SiemensQuadraParameterisationBlocks( G4int 
     // Visual properties
     G4VisAttributes* vis = new G4VisAttributes();
     //vis->SetColor( 0.0, G4double( copyNo ) / G4double( nCopies ), 0.0, 1.0 );
-    vis->SetColor( 0.0, G4double( rand() % nCopies ) / G4double( nCopies ), 0.0, 1.0 );
+    vis->SetColor( 0.0, G4double( rand() % nCopies ) / G4double( nCopies ), 0.0, 0.1 );  // change alpha here
     m_visions.push_back( vis );
   }
 }
