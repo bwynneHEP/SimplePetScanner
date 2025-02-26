@@ -277,7 +277,6 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
     command += " --sourceOffsetMM " + str(SourceOffset)
     if DetectorMaterial != "":
       command += " --detectorMaterial " + DetectorMaterial
-    print("running command = ", command)
     process = subprocess.Popen( command, shell=True )
     process.wait()
 
