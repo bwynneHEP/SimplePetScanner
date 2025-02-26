@@ -27,6 +27,7 @@ int main( int argc, char* argv[] )
   std::string decayOutputFileName = "";
   G4double detectorLength = -1.0;
   G4double phantomLength = -1.0;
+  G4double sourceOffsetMM = 0.0;
   for ( int argi = 1; argi < argc; ++argi )
   {
     std::string argument = argv[ argi ];
@@ -103,6 +104,15 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--sourceOffsetMM" )
+    {
+      if ( nextArgument.size() ) sourceOffsetMM = nextInteger;
+      else
+      {
+        std::cerr << "Did not find source offset to use" << std::endl;
+        return 1;
+      }
+    }
     else if ( argument == "--outputFileName" )
     {
       if ( nextArgument.size() ) outputFileName = nextArgument;
@@ -155,7 +165,7 @@ int main( int argc, char* argv[] )
 
   // Set user action classes
   DecayTimeFinderAction * decayTimeFinder = new DecayTimeFinderAction( decayOutputFileName );
-  ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName, detectorLength, phantomLength, detectorMaterial );
+  ActionInitialization * actions = new ActionInitialization( decayTimeFinder, sourceName, detectorLength, phantomLength, detectorMaterial, sourceOffsetMM );
   runManager->SetUserInitialization( actions );
 
   // Set up detector
