@@ -156,8 +156,8 @@ def CountRatePerformance(detectorMaterial, nevents, Emin, Emax, simulationWindow
             #only slices within the central 650 mm are used 
             zmin = -325 #mm
             zmax = 325 #mm
-            z1 = event[0][6]
-            z2 = event[1][6]
+            z1 = event[0][DATASET_Z]
+            z2 = event[1][DATASET_Z]
             zmean = (z1 + z2)/2.
             if zmean > zmax or zmean < zmin :
                 continue
@@ -169,7 +169,7 @@ def CountRatePerformance(detectorMaterial, nevents, Emin, Emax, simulationWindow
             profile.Fill(sinogramS, sinogramS)
             
             #fill in sinogram with random coincidences 
-            if event[0][0] != event[1][0]:
+            if event[0][DATASET_EVENT] != event[1][DATASET_EVENT]:
                 sinogramRandoms.Fill(sinogramS, sinogramTheta)
                 profileRandoms.Fill(sinogramS, sinogramS)
 
