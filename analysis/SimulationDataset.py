@@ -68,7 +68,7 @@ class CsvFileReader:
 
 class SimulationDataset:
 
-  def __init__( self, InputPath, TotalDecays, EnergyMin=None, EnergyMax=None, ClusterLimitMM=None, SourceOffset=None ):
+  def __init__( self, InputPath, TotalDecays, EnergyMin=None, EnergyMax=None, ClusterLimitMM=None ):
     self.inputData = {}
     self.unusedEvents = []
     self.usedEvents = []
@@ -76,7 +76,6 @@ class SimulationDataset:
     self.energyMax = EnergyMax
     self.totalDecays = TotalDecays
     self.hitCount = 0
-    self.sourceOffset = SourceOffset
 
     if TotalDecays < 1:
       print( "ERROR: Requesting an empty dataset" )
@@ -258,7 +257,12 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
   # Hanna: printing detector name commented out to have common naming convention
   # if DetectorMaterial != "":
   #   outputFileName += DetectorMaterial + "."
-  outputFileName += Source + "." + str(SourceLengthMM) + "mm." + str(Seed) + ".csv"
+  outputFileName += Source + "." + str(SourceLengthMM) + "mm."
+
+  if 'Linear' in Source:
+    outputFileName += "negativeYOffset" + str(SourceOffset) + "mm."
+
+  outputFileName += str(Seed) + ".csv"
 
   # Check if file already present (in which case assume it's re-usable)
   if os.path.exists( outputFileName ):
@@ -289,7 +293,7 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
 
 
 # Create a dataset class from new or existing simulated input
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None, SourceOffset=None ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None, SourceOffset=0 ):
 
   outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path, SourceOffset )
   if outputFileName == "":
