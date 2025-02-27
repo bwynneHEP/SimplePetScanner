@@ -69,7 +69,7 @@ void LinearSourceAction::GeneratePrimaries( G4Event* anEvent )
 
   // Choose a position on the z-axis
   G4double z = m_minZ + ( G4UniformRand() * ( m_maxZ - m_minZ ) );
-  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, -1.*m_sourceOffsetMM, z ) );
+  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, -1.*m_sourceOffsetMM*mm, z ) );
 
   // Fire particle
   m_particleGun->GeneratePrimaryVertex( anEvent );
