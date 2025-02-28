@@ -260,7 +260,7 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
   outputFileName += Source + "." + str(SourceLengthMM) + "mm."
 
   if 'Linear' in Source:
-    outputFileName += "negativeYOffset" + str(SourceOffset) + "mm."
+    outputFileName += "-y" + str(SourceOffset) + "mm."
 
   outputFileName += str(Seed) + ".csv"
 
