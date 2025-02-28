@@ -6,13 +6,14 @@
 
 #include "G4SystemOfUnits.hh"
 
-ActionInitialization::ActionInitialization( DecayTimeFinderAction * decayTimeFinder, std::string sourceName, G4double detectorLength, G4double phantomLength, std::string detectorMaterial)
+ActionInitialization::ActionInitialization( DecayTimeFinderAction * decayTimeFinder, std::string sourceName, G4double detectorLength, G4double phantomLength, std::string detectorMaterial, G4double sourceOffsetMM)
   : G4VUserActionInitialization()
   , m_decayTimeFinder( decayTimeFinder )
   , m_sourceName( sourceName )
   , m_detectorLength( detectorLength )
   , m_phantomLength( phantomLength )
   , m_detectorMaterial( detectorMaterial )
+  , m_sourceOffsetMM( sourceOffsetMM )
 {
 }
 
@@ -34,7 +35,7 @@ void ActionInitialization::Build() const
       std::cerr << "Cannot use a zero-length phantom as a source" << std::endl;
       exit(1);
     }
-    this->SetUserAction( new LinearSourceAction( -phantomLength, phantomLength, m_sourceName.substr( 6 ) ) );
+    this->SetUserAction( new LinearSourceAction( -phantomLength, phantomLength, m_sourceName.substr( 6 ), m_sourceOffsetMM ) );
   }
   else if ( m_sourceName == "Siemens" )
   {

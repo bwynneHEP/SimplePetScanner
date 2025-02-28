@@ -8,7 +8,7 @@
 class LinearSourceAction : public G4VUserPrimaryGeneratorAction
 {
   public:
-    LinearSourceAction( G4double minZ, G4double maxZ, std::string isotope );
+    LinearSourceAction( G4double minZ, G4double maxZ, std::string isotope, G4double sourceOffsetMM );
     ~LinearSourceAction() override;
 
     void GeneratePrimaries( G4Event* ) override;
@@ -18,6 +18,7 @@ class LinearSourceAction : public G4VUserPrimaryGeneratorAction
     G4double m_minZ;
     G4double m_maxZ;
     std::string m_isotope;
+    G4double m_sourceOffsetMM;
 };
 
 #endif

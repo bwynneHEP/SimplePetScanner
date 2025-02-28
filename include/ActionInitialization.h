@@ -9,7 +9,7 @@
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization( DecayTimeFinderAction* decayTimeFinder, std::string sourceName, G4double detectorLength, G4double phantomLength , std::string detectorMaterial);
+    ActionInitialization( DecayTimeFinderAction* decayTimeFinder, std::string sourceName, G4double detectorLength, G4double phantomLength , std::string detectorMaterial, G4double sourceOffsetMM);
     ~ActionInitialization() override;
 
     void Build() const override;
@@ -20,6 +20,7 @@ class ActionInitialization : public G4VUserActionInitialization
     G4double m_detectorLength;
     G4double m_phantomLength;
     std::string m_detectorMaterial;
+    G4double m_sourceOffsetMM;
 };
 
 #endif

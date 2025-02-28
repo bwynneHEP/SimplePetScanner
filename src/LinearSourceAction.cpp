@@ -7,10 +7,11 @@
 
 #include <utility>
 
-LinearSourceAction::LinearSourceAction( G4double minZ, G4double maxZ, std::string isotope )
+LinearSourceAction::LinearSourceAction( G4double minZ, G4double maxZ, std::string isotope, G4double sourceOffsetMM )
   : G4VUserPrimaryGeneratorAction()
   , m_minZ( minZ ), m_maxZ( maxZ )
   , m_isotope( isotope )
+  , m_sourceOffsetMM( sourceOffsetMM )
 {
   G4int nofParticles = 1;
   m_particleGun = new G4ParticleGun( nofParticles );
@@ -68,7 +69,7 @@ void LinearSourceAction::GeneratePrimaries( G4Event* anEvent )
 
   // Choose a position on the z-axis
   G4double z = m_minZ + ( G4UniformRand() * ( m_maxZ - m_minZ ) );
-  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, 0.0, z ) );
+  m_particleGun->SetParticlePosition( G4ThreeVector( 0.0, -1.*m_sourceOffsetMM*mm, z ) );
 
   // Fire particle
   m_particleGun->GeneratePrimaryVertex( anEvent );
