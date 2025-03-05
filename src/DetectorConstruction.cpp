@@ -18,7 +18,7 @@ G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
 DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength,
-                                            std::string outputFileName, std::string decayOutputFileName, std::string material, G4int nAluminiumSleeves )
+                                            std::string outputFileName, std::string decayOutputFileName, std::string material, G4int nAluminiumSleeves, G4double sourceOffsetMM )
   : G4VUserDetectorConstruction()
   , m_decayTimeFinder( decayTimeFinder )
   , m_detector( detector )
@@ -28,6 +28,7 @@ DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFin
   , m_detectorLength( detectorLength )
   , m_phantomLength( phantomLength )
   , m_nAluminiumSleeves( nAluminiumSleeves )
+  , m_sourceOffsetMM( sourceOffsetMM )
 {
 }
 
@@ -84,14 +85,15 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     {
       //Build sensitivity phantom
       std::cout << "Building sensitivity phantom" << std::endl;
-      G4double innerRadius[5] = {3.9, 7.0, 10.2, 13.4, 16.6};
-      G4double outerRadius[5] = {6.4, 9.5, 12.7, 15.9, 19.1};
+      G4double innerRadius[5] = {3.9, 7.0, 10.2, 13.4, 16.6};//mm
+      G4double outerRadius[5] = {6.4, 9.5, 12.7, 15.9, 19.1};//mm
+      std::cout << "Source offset = " << m_sourceOffsetMM << std::endl;
 
       for (G4int i = 0; i < m_nAluminiumSleeves; i++) {
         // Create a logical volume for the cylinder
         G4Tubs* SensitivityPhantomSolid = new G4Tubs("Sleeve"+ std::to_string(i+1), innerRadius[i], outerRadius[i], phantomAxial, 0.0*deg, 360.0 * deg);
         G4LogicalVolume* SensitivityPhantomLV = new G4LogicalVolume(SensitivityPhantomSolid, aluminium, "Sleeve"+ std::to_string(i+1), 0, 0, 0);
-        G4VPhysicalVolume* SensitivityPhantomPV = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), SensitivityPhantomLV, "Sleeve"+ std::to_string(i+1), worldLV, false, 0); 
+        G4VPhysicalVolume* SensitivityPhantomPV = new G4PVPlacement(0, G4ThreeVector(0.0, -1.*m_sourceOffsetMM, 0.0), SensitivityPhantomLV, "Sleeve"+ std::to_string(i+1), worldLV, false, 0); 
       }
     }
     else {

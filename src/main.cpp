@@ -182,7 +182,7 @@ int main( int argc, char* argv[] )
   runManager->SetUserInitialization( actions );
 
   // Set up detector
-  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, decayOutputFileName, detectorMaterial, nAluminiumSleeves );
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, decayOutputFileName, detectorMaterial, nAluminiumSleeves, sourceOffsetMM );
   runManager->SetUserInitialization( detector );
 
   // Set up the macros
