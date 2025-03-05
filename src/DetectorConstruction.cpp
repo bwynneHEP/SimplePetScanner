@@ -18,7 +18,7 @@ G4ThreadLocal
 G4GlobalMagFieldMessenger* DetectorConstruction::m_magneticFieldMessenger = 0;
 
 DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFinder, std::string detector, G4double detectorLength, G4double phantomLength,
-                                            std::string outputFileName, std::string decayOutputFileName, std::string material )
+                                            std::string outputFileName, std::string decayOutputFileName, std::string material, G4int nAluminiumSleeves )
   : G4VUserDetectorConstruction()
   , m_decayTimeFinder( decayTimeFinder )
   , m_detector( detector )
@@ -27,6 +27,7 @@ DetectorConstruction::DetectorConstruction( DecayTimeFinderAction * decayTimeFin
   , m_material( material )
   , m_detectorLength( detectorLength )
   , m_phantomLength( phantomLength )
+  , m_nAluminiumSleeves( nAluminiumSleeves )
 {
 }
 
@@ -42,6 +43,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4NistManager* nistManager = G4NistManager::Instance();
   G4Material* air = nistManager->FindOrBuildMaterial( "G4_AIR" );
   G4Material* polyeth = nistManager->FindOrBuildMaterial( "G4_POLYETHYLENE" );
+  G4Material* aluminium = nistManager->FindOrBuildMaterial( "G4_Al" );
 
   // Definitions of Solids, Logical Volumes, Physical Volumes
   G4double const worldAxial = 1.5*m;
@@ -77,32 +79,51 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                  true );          // checking overlaps
 
   if ( phantomAxial > 0.0 ) {
-    // PHANTOM: Solid (cylinder)
-    G4Tubs* phantomS = new G4Tubs(
-                   "Phantom",       // its name
-                   0.0,             // inner radius 0, so it's a solid cylinder (not a hollow tube)
-                   phantomRadius,   // outer radius
-                   phantomAxial,    // how long (z axis, remember it's a half-length)
-                   0.0*deg,         // starting angle
-                   360.0*deg );     // ending angle (i.e. it's a full circle)
 
-    // PHANTOM: Logical volume (how to treat it)
-    G4LogicalVolume* phantomLV = new G4LogicalVolume(
-                   phantomS,        // its solid
-                   polyeth,         // its material
-                   "Phantom",       // its name
-                   0, 0, 0 );       // Modifiers we don't use
+    if ( m_nAluminiumSleeves > 0 )
+    {
+      //Build sensitivity phantom
+      std::cout << "Building sensitivity phantom" << std::endl;
+      G4double innerRadius[5] = {3.9, 7.0, 10.2, 13.4, 16.6};
+      G4double outerRadius[5] = {6.4, 9.5, 12.7, 15.9, 19.1};
 
-    // PHANTOM: Physical volume (where is it)
-    /*G4VPhysicalVolume* phantomPV =*/ new G4PVPlacement(
-                   0,               // no rotation
-                   G4ThreeVector(0.0, 0.0, 0.0), // in the centre
-                   phantomLV,       // its logical volume
-                   "Phantom",       // its name
-                   worldLV,         // its mother volume
-                   false,           // no boolean operations
-                   0,               // copy number
-                   true );          // checking overlaps
+      for (G4int i = 0; i < m_nAluminiumSleeves; i++) {
+        // Create a logical volume for the cylinder
+        G4Tubs* SensitivityPhantomSolid = new G4Tubs("Sleeve"+ std::to_string(i+1), innerRadius[i], outerRadius[i], phantomAxial, 0.0*deg, 360.0 * deg);
+        G4LogicalVolume* SensitivityPhantomLV = new G4LogicalVolume(SensitivityPhantomSolid, aluminium, "Sleeve"+ std::to_string(i+1), 0, 0, 0);
+        G4VPhysicalVolume* SensitivityPhantomPV = new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), SensitivityPhantomLV, "Sleeve"+ std::to_string(i+1), worldLV, false, 0); 
+      }
+    }
+    else {
+      //Build scatter phantom
+      std::cout << "Bulding scatter phantom" << std::endl;
+      // PHANTOM: Solid (cylinder)
+      G4Tubs* phantomS = new G4Tubs(
+                    "Phantom",       // its name
+                    0.0,             // inner radius 0, so it's a solid cylinder (not a hollow tube)
+                    phantomRadius,   // outer radius
+                    phantomAxial,    // how long (z axis, remember it's a half-length)
+                    0.0*deg,         // starting angle
+                    360.0*deg );     // ending angle (i.e. it's a full circle)
+
+      // PHANTOM: Logical volume (how to treat it)
+      G4LogicalVolume* phantomLV = new G4LogicalVolume(
+                    phantomS,        // its solid
+                    polyeth,         // its material
+                    "Phantom",       // its name
+                    0, 0, 0 );       // Modifiers we don't use
+
+      // PHANTOM: Physical volume (where is it)
+      /*G4VPhysicalVolume* phantomPV =*/ new G4PVPlacement(
+                    0,               // no rotation
+                    G4ThreeVector(0.0, 0.0, 0.0), // in the centre
+                    phantomLV,       // its logical volume
+                    "Phantom",       // its name
+                    worldLV,         // its mother volume
+                    false,           // no boolean operations
+                    0,               // copy number
+                    true );          // checking overlaps
+    }
   }
 
   // DETECTOR: separate class
