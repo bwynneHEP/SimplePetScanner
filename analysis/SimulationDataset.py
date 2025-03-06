@@ -237,7 +237,7 @@ def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
 
 
 # Launch the Geant4 simulation
-def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed=1234, Path="", SourceOffset=0 ):
+def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed=1234, Path="", SourceOffset=0, NAluminiumSleeves=0 ):
 
   # Allow creation at arbitrary path
   outputFileName = ""
@@ -258,7 +258,8 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
   # if DetectorMaterial != "":
   #   outputFileName += DetectorMaterial + "."
   outputFileName += Source + "." + str(SourceLengthMM) + "mm."
-
+  if NAluminiumSleeves > 0 :
+    outputFileName += str(NAluminiumSleeves) + "AlSleeves."
   if 'Linear' in Source:
     outputFileName += "-y" + str(SourceOffset) + "mm."
 
@@ -276,11 +277,14 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
     command += " --detectorLengthMM " + str(DetectorLengthMM)
     command += " --source " + Source
     command += " --phantomLengthMM " + str(SourceLengthMM)
+    if NAluminiumSleeves > 0 :
+      command += " --nAluminiumSleeves " + str(NAluminiumSleeves)
     command += " --outputFileName " + outputFileName
     command += " --randomSeed " + str(Seed)
     command += " --sourceOffsetMM " + str(SourceOffset)
     if DetectorMaterial != "":
       command += " --detectorMaterial " + DetectorMaterial
+    print("Running command = ", command)
     process = subprocess.Popen( command, shell=True )
     process.wait()
 
@@ -293,9 +297,9 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
 
 
 # Create a dataset class from new or existing simulated input
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None, SourceOffset=0 ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None, SourceOffset=0, NAluminiumSleeves=0 ):
 
-  outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path, SourceOffset )
+  outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path, SourceOffset, NAluminiumSleeves )
   if outputFileName == "":
       return None
 
