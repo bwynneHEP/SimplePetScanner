@@ -28,6 +28,8 @@ int main( int argc, char* argv[] )
   G4double detectorLength = -1.0;
   G4double phantomLength = -1.0;
   G4double sourceOffsetMM = 0.0;
+  G4int nAluminiumSleeves = 0;
+
   for ( int argi = 1; argi < argc; ++argi )
   {
     std::string argument = argv[ argi ];
@@ -140,6 +142,23 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--nAluminiumSleeves" )
+    {
+      if (nextArgument.size() ) {
+        if (nextInteger > 0 && nextInteger <= 5)
+          nAluminiumSleeves = nextInteger;
+        else
+        {
+          std::cerr << "Invalid sleeve count, enter a value between 1 and 5" << std::endl;
+          return 1;
+        }
+      }
+      else 
+      {
+        std::cerr << "Did not find the number of aluminium sleeves to use" << std::endl;
+        return 1;
+      }
+    }
     else
     {
       std::cerr << "Unrecognised argument: " << argument << std::endl;
@@ -169,7 +188,7 @@ int main( int argc, char* argv[] )
   runManager->SetUserInitialization( actions );
 
   // Set up detector
-  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, decayOutputFileName, detectorMaterial );
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, decayOutputFileName, detectorMaterial, nAluminiumSleeves, sourceOffsetMM );
   runManager->SetUserInitialization( detector );
 
   // Set up the macros
