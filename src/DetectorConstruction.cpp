@@ -81,7 +81,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   if ( phantomAxial > 0.0 ) {
 
-    if ( m_nAluminiumSleeves > 0 )
+    if ( m_nAluminiumSleeves > 0 && m_nAluminiumSleeves <= 5 )
     {
       //Build sensitivity phantom
       std::cout << "Building sensitivity phantom" << std::endl;

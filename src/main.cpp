@@ -145,7 +145,13 @@ int main( int argc, char* argv[] )
     else if ( argument == "--nAluminiumSleeves" )
     {
       if (nextArgument.size() ) {
-        nAluminiumSleeves = nextInteger;
+        if (nextInteger <= 5)
+          nAluminiumSleeves = nextInteger;
+        else
+        {
+          std::cerr << "Exceeded maximum number of aluminium sleeves" << std::endl;
+          return 1;
+        }
       }
       else 
       {
