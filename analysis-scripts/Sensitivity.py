@@ -57,8 +57,8 @@ def CalcStot(Rates, startingActivity):
     mpl.subplots_adjust(left=0.16)
     mpl.subplots_adjust(bottom=0.12)
     mpl.legend(loc='upper right')
-    mpl.xlabel('$X_j$ [mm]')
-    mpl.ylabel('$R_{CORR,j}$ [cps]')
+    mpl.xlabel('Accumulated sleeve wall thickness [mm]')
+    mpl.ylabel('Corrected count rate [cps]')
     mpl.savefig("StotFit.pdf")
     mpl.clf()
     return Stot
