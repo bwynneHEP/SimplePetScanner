@@ -13,7 +13,6 @@ import numpy as np
 import matplotlib.pyplot as mpl
 import bisect
 from scipy.optimize import curve_fit
-mpl.rcParams['text.usetex'] = True
 
 params = {'legend.fontsize': 15,
           'legend.title_fontsize': 15,
