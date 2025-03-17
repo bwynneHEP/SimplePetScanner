@@ -13,7 +13,6 @@ import numpy as np
 import matplotlib.pyplot as mpl
 import bisect
 from scipy.optimize import curve_fit
-mpl.rcParams['text.usetex'] = True
 
 params = {'legend.fontsize': 15,
           'legend.title_fontsize': 15,
@@ -57,8 +56,8 @@ def CalcStot(Rates, startingActivity):
     mpl.subplots_adjust(left=0.16)
     mpl.subplots_adjust(bottom=0.12)
     mpl.legend(loc='upper right')
-    mpl.xlabel('$X_j$ [mm]')
-    mpl.ylabel('$R_{CORR,j}$ [cps]')
+    mpl.xlabel('Accumulated sleeve wall thickness [mm]')
+    mpl.ylabel('Corrected count rate [cps]')
     mpl.savefig("StotFit.pdf")
     mpl.clf()
     return Stot
