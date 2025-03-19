@@ -52,6 +52,9 @@ Set the radioactive source, either a radioisotope tracer in a capillary (Linear)
 For a linear source, F18 and Zr89 isotopes are supported.
 For the detector background, the detector geometry (Siemens or Explorer) should be specified, Lu176 decays will be assumed.
 
+### --sourceOffsetMM
+Shift the linear source in the negative direction along the y-axis. 
+
 ### --phantomLengthMM
 Regardless of the radioactive source, a polyethylene cylindrical phantom will be simulated in the centre of the detector.
 Set the length of the phantom in mm with this argument.
@@ -66,6 +69,9 @@ Create output csv file containing the information about the radioactive decay. F
 ### --randomSeed
 Override the default random seed.
 
+### --nAluminiumSleeves
+Create a sensitivity phantom with the corresponding number of aluminum sleeves.
+The number of sleeves has to be an integer from 1 to 5. If the option is not called, the scatter phantom will be created by default. 
 
 ## Analysis
 
