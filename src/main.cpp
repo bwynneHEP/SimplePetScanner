@@ -29,7 +29,8 @@ void printHelp()
               << "  --outputFileName      Override the default output file name\n"
               << "  --decayOutputFileName Create output containing the radioactive decay info\n"
               << "  --randomSeed          Override the default random seed\n"
-              << "  --nAluminiumSleeves   Create sensitivity phantom with n sleeves\n";
+              << "  --nAluminiumSleeves   Create sensitivity phantom with n sleeves\n"
+              << "See README.md for more complete documentation\n";
 } 
 
 int main( int argc, char* argv[] )
