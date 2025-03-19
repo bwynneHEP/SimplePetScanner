@@ -35,7 +35,7 @@ Activate the gui (omit this argument to produce output data only).
 
 ### --detector
 Choose a detector geometry (Siemens or Explorer) and the granularity of the detector crystals.
-Panel, Block and Crystal modes are supported, corresponding to large detectors running the full axial length of the system, axial sengmentation into smaller detector modules, and fully granualar simulation at the level of individual scintillator crystals.
+Panel, Block and Crystal modes are supported, corresponding to large detectors running the full axial length of the system, axial segmentation into smaller detector modules, and fully granualar simulation at the level of individual scintillator crystals.
 
 ### --detectorLengthMM
 Set the length of the detector in mm.
