@@ -13,6 +13,24 @@
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
 
+void printHelp()
+{
+  std::cout << "Usage: build/SimplePetScanner [OPTIONS]\n"
+              << "Options:\n"
+              << "  --help                Show help message\n"
+              << "  -n                    Number of events to simulate\n"
+              << "  --gui                 Activate the gui\n"
+              << "  --detector            Select detector geometry and granularity\n"
+              << "  --detectorLengthMM    Set the detector length in mm\n"
+              << "  --detectorMaterial    Set the scintillator material to use\n"
+              << "  --source              Set the radioactive source (tracer or intrinsic detector background)\n"
+              << "  --sourceOffset        Shift the linear source by n mm\n"
+              << "  --phantomLengthMM     Set the phantom length in mm\n"
+              << "  --outputFileName      Override the default output file name\n"
+              << "  --decayOutputFileName Create output containing the radioactive decay info\n"
+              << "  --randomSeed          Override the default random seed\n"
+              << "  --nAluminiumSleeves   Create sensitivity phantom with n sleeves\n";
+} 
 
 int main( int argc, char* argv[] )
 {
@@ -52,6 +70,11 @@ int main( int argc, char* argv[] )
 
     // Examine arguments
     if ( argument == "--gui" ) useGUI = true;
+    else if (argument == "--help") 
+    { 
+      printHelp();
+      exit(0);
+    }
     else if ( argument == "-n" )
     {
       if ( nextInteger ) nEvents = nextInteger;
