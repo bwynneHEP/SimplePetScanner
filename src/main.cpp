@@ -114,7 +114,14 @@ int main( int argc, char* argv[] )
     }
     else if ( argument == "--source" )
     {
-      if ( nextArgument.size() ) sourceName = nextArgument;
+      if ( nextArgument.size() ) 
+      {
+        sourceName = nextArgument;
+        if (sourceName == "Siemens" && detectorMaterial == "")
+          detectorMaterial = "LSO";
+        if (sourceName == "Explorer" && detectorMaterial == "")
+          detectorMaterial = "LYSO";
+      }
       else
       {
         std::cerr << "Did not find source name to use" << std::endl;
