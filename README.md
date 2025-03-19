@@ -53,7 +53,7 @@ For a linear source, F18 and Zr89 isotopes are supported.
 For the detector background, the detector geometry (Siemens or Explorer) should be specified, Lu176 decays will be assumed.
 
 ### --sourceOffsetMM
-Shift the linear source in the negative direction along the y-axis. 
+Shift the linear source in the negative direction of the y-axis. If this argument is non-zero and provided along the --nAluminiumSleeves argument, the sensitivity phantom is shifted as well. 
 
 ### --phantomLengthMM
 Regardless of the radioactive source, a polyethylene cylindrical phantom will be simulated in the centre of the detector.
