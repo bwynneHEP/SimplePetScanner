@@ -49,7 +49,7 @@ Each detector geometry will use their default material unless this argument is s
 
 ### --source
 Set the radioactive source, either a radioisotope tracer in a capillary (Linear) or the intrinsic detector background.
-For a linear source, F18 and Zr89 isotopes are supported.
+For a linear source, F18, Zr89, C11, O15, N13, Rb82 and Ga68 isotopes are supported.
 For the detector background, the detector geometry (Siemens or Explorer) should be specified, Lu176 decays will be assumed.
 
 ### --sourceOffsetMM
