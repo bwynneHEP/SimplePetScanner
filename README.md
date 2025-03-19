@@ -35,7 +35,7 @@ Activate the gui (omit this argument to produce output data only).
 
 ### --detector
 Choose a detector geometry (Siemens or Explorer) and the granularity of the detector crystals.
-Panel, Block and Crystal modes are supported, corresponding to large detectors running the full axial length of the system, axial sengmentation into smaller detector modules, and fully granualar simulation at the level of individual scintillator crystals.
+Panel, Block and Crystal modes are supported, corresponding to large detectors running the full axial length of the system, axial segmentation into smaller detector modules, and fully granualar simulation at the level of individual scintillator crystals.
 
 ### --detectorLengthMM
 Set the length of the detector in mm.
@@ -44,18 +44,20 @@ Each detector geometry will take their default length unless this argument is sp
 
 ### --detectorMaterial
 Set the scintillator material used for the detector crystals.
-LSO, LYSO (with the precise LYSO composition corresponding to the Explorer detector), NaI, BGO and CsF are supported.
+All supported materials are listed in [src/CrystalMaterial.cpp](src/CrystalMaterial.cpp). 
 Each detector geometry will use their default material unless this argument is specified.
 
 ### --source
 Set the radioactive source, either a radioisotope tracer in a capillary (Linear) or the intrinsic detector background.
-For a linear source, F18 and Zr89 isotopes are supported.
+For a linear source, F18, Zr89, C11, O15, N13, Rb82 and Ga68 isotopes are supported.
 For the detector background, the detector geometry (Siemens or Explorer) should be specified, Lu176 decays will be assumed.
 
+### --sourceOffsetMM
+Shift the linear source in the negative direction of the y-axis. If this argument is non-zero and provided along with the --nAluminiumSleeves argument, the sensitivity phantom is shifted as well. 
+
 ### --phantomLengthMM
-Regardless of the radioactive source, a polyethylene cylindrical phantom will be simulated in the centre of the detector.
-Set the length of the phantom in mm with this argument.
-If a linear radioisotope source is selected, the length of the capillary will be equivalent to the length of the phantom.
+Set the length of the phantom in mm. 
+If a linear radioisotope source is selected, the length of the capillary will be equivalent to the length of the phantom. This option will set the length of the scatter phantom or the sensitivity phantom depending on which one is selected.
 
 ### --outputFileName
 Override the default output file name (hits.csv) to allow multiprocessing.
@@ -66,6 +68,9 @@ Create output csv file containing the information about the radioactive decay. F
 ### --randomSeed
 Override the default random seed.
 
+### --nAluminiumSleeves
+Create a sensitivity phantom with the corresponding number of aluminum sleeves.
+The number of sleeves has to be an integer from 1 to 5. If the option is not called, the scatter phantom will be created by default. 
 
 ## Analysis
 
