@@ -8,7 +8,7 @@ def CalcSinogramCoords(event):
     x2 = event[1][DATASET_R]*np.cos(event[1][DATASET_PHI])
     y2 = event[1][DATASET_R]*np.sin(event[1][DATASET_PHI])
 
-    sinogramTheta = np.atan2(x1 - x2, y1 - y2)
+    sinogramTheta = np.arctan2(x1 - x2, y1 - y2)
 
     denom = (y1 - y2) * (y1 - y2) + (x2 - x1) * (x2 - x1)
     sinogramS = 0.
