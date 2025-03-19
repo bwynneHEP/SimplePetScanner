@@ -44,7 +44,7 @@ Each detector geometry will take their default length unless this argument is sp
 
 ### --detectorMaterial
 Set the scintillator material used for the detector crystals.
-LSO, LYSO (with the precise LYSO composition corresponding to the Explorer detector), NaI, BGO and CsF are supported.
+All supported materials are listed in [src/CrystalMaterial.cpp](src/CrystalMaterial.cpp). 
 Each detector geometry will use their default material unless this argument is specified.
 
 ### --source
@@ -53,12 +53,11 @@ For a linear source, F18 and Zr89 isotopes are supported.
 For the detector background, the detector geometry (Siemens or Explorer) should be specified, Lu176 decays will be assumed.
 
 ### --sourceOffsetMM
-Shift the linear source in the negative direction of the y-axis. If this argument is non-zero and provided along the --nAluminiumSleeves argument, the sensitivity phantom is shifted as well. 
+Shift the linear source in the negative direction of the y-axis. If this argument is non-zero and provided along with the --nAluminiumSleeves argument, the sensitivity phantom is shifted as well. 
 
 ### --phantomLengthMM
-Regardless of the radioactive source, a polyethylene cylindrical phantom will be simulated in the centre of the detector.
-Set the length of the phantom in mm with this argument.
-If a linear radioisotope source is selected, the length of the capillary will be equivalent to the length of the phantom.
+Set the length of the phantom in mm. 
+If a linear radioisotope source is selected, the length of the capillary will be equivalent to the length of the phantom. This option will set the length of the scatter phantom or the sensitivity phantom depending on which one is selected.
 
 ### --outputFileName
 Override the default output file name (hits.csv) to allow multiprocessing.
