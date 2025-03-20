@@ -23,6 +23,7 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
+  std::string detectorMaterial = m_detectorMaterial;
   if ( m_sourceName.substr( 0, 6 ) == "Linear" )
   {
     G4double phantomLength = 350.0*mm;
@@ -45,7 +46,10 @@ void ActionInitialization::Build() const
       detectorLength = SiemensQuadraDetector::LengthForNRings( SiemensQuadraDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
       detectorLength /= 2.0; // half-lengths
     }
-    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, m_detectorMaterial, 400.0*mm, 420.0*mm ) );
+
+    if ( detectorMaterial == "" ) detectorMaterial = "LSO";   
+    
+    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, detectorMaterial, 400.0*mm, 420.0*mm ) );
   }
   else if ( m_sourceName == "Explorer" )
   {
@@ -55,8 +59,9 @@ void ActionInitialization::Build() const
       detectorLength = ExplorerDetector::LengthForNRings( ExplorerDetector::NRingsInLength( m_detectorLength ) ); // discrete length steps given by rings
       detectorLength /= 2.0; // half-lengths
     }
-
-    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, m_detectorMaterial, 393*mm, 411.1*mm ) );
+    if ( detectorMaterial == "" ) detectorMaterial = "LYSO";
+    
+    this->SetUserAction( new CrystalIntrinsicAction( -detectorLength, detectorLength, detectorMaterial, 393*mm, 411.1*mm ) );
   }
   else
   {
