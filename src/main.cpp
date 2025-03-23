@@ -24,7 +24,7 @@ void printHelp()
               << "  --detectorLengthMM    Set the detector length in mm\n"
               << "  --detectorMaterial    Set the scintillator material to use\n"
               << "  --source              Set the radioactive source (tracer or intrinsic detector background)\n"
-              << "  --sourceOffset        Shift the linear source by n mm\n"
+              << "  --sourceOffsetMM      Shift the linear source by n mm\n"
               << "  --phantomLengthMM     Set the phantom length in mm\n"
               << "  --outputFileName      Override the default output file name\n"
               << "  --decayOutputFileName Create output containing the radioactive decay info\n"
