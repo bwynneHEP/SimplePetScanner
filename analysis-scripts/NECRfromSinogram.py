@@ -112,7 +112,7 @@ def CalcCSR(projectionShifted):
     #return total S+R counts
     return totCSRoutsideStrip + totCSRinsideStrip
 
-def CountRatePerformance(detectorMaterial, nevents, Emin, Emax, simulationWindow, coincidenceWindow, activity, detectorLength, phantomLength):
+def CountRatePerformanceData(detectorMaterial, nevents, Emin, Emax, detectorLength, phantomLength):
 
     tracerData = CreateDataset( detectorLength, "Siemens", phantomLength, "LinearF18", nevents, Emin, Emax, detectorMaterial, SourceOffset=45)
     #ClusterLimitMM=16
@@ -125,11 +125,16 @@ def CountRatePerformance(detectorMaterial, nevents, Emin, Emax, simulationWindow
     if detectorMaterial == "LSO" or detectorMaterial == "LYSO" :
         crystalActivity= sqp.Lu176decaysInMass( sqp.DetectorMassLength( detectorLength, detectorMaterial ) )
         crystalData = CreateDataset( detectorLength, "Siemens", phantomLength, "Siemens", nevents, Emin, Emax, detectorMaterial )
-        activityList = [activity, crystalActivity]
+        activityList = [0.0, crystalActivity]
         dataList = [tracerData, crystalData]
     else :
-        activityList = [activity]
+        activityList = [0.0]
         dataList = [tracerData]
+
+    # Linear source activity placeholder value to be overwritten later
+    return activityList, dataList
+
+def CountRatePerformance(activityList, dataList, simulationWindow, coincidenceWindow):
 
     nbinsx = 250
     nbinsy = 380
@@ -152,6 +157,7 @@ def CountRatePerformance(detectorMaterial, nevents, Emin, Emax, simulationWindow
 
     for event in GenerateCoincidences_new( activityList, dataList, simulationWindow, coincidenceWindow, UsePhotonTime=False, EnergyResolution=0.0, TimeResolution=0.0 ):
 
+        # TODO: understand how 3+ photon events should be handled
         if len( event ) > 1:
             #only slices within the central 650 mm are used 
             zmin = -325 #mm
@@ -263,11 +269,15 @@ activities = []
 phantomRadius = 20.3 / 2.0
 phantomVolume = phantomRadius * phantomRadius * math.pi * phantomLength / 10.0
 
+activityList, dataList = CountRatePerformanceData(detectorMaterial, nevents, Emin, Emax, detectorLength, phantomLength)
+
 for t in range(0, 700, 20):
     tsec = 60*t
     activity = F18ActivityAtTime( startingActivity, tsec )
+    activityList[0] = activity
 
-    RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance(detectorMaterial, nevents, Emin, Emax, simulationWindow, coincidenceWindow, activity, detectorLength, phantomLength)
+    RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance(activityList, dataList, simulationWindow, coincidenceWindow)
+
     NECRs.append(NECRAtTime*0.000001)
     RTOTs.append(RTOTatTime*0.000001)
     Rss.append(RsAtTime*0.000001)
