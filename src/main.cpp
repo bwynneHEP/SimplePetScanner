@@ -12,6 +12,7 @@
 #include "Randomize.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "G4HadronicParameters.hh"
 
 void printHelp()
 {
@@ -217,6 +218,7 @@ int main( int argc, char* argv[] )
 
   // Set up the macros
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
+  G4HadronicParameters::Instance()->SetTimeThresholdForRadioactiveDecay( 1.0e+60*CLHEP::year ); //increase the time threshold for ion decays
   UImanager->ApplyCommand( "/run/initialize" );
   UImanager->ApplyCommand( "/control/execute run.mac" );
   UImanager->ApplyCommand( "/run/beamOn " + std::to_string( nEvents ) ); // even if it's zero, useful to initialise physics
