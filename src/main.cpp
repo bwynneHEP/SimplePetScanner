@@ -4,9 +4,9 @@
 
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
-#include "QGSP_BERT_HP.hh"
+#include "G4PhysListFactory.hh"
 #include "LBE.hh"
-#include "QBBC.hh"
+// #include "QBBC.hh"
 #include "G4StepLimiterPhysics.hh"
 #include "G4RadioactiveDecayPhysics.hh"
 #include "Randomize.hh"
@@ -199,12 +199,12 @@ int main( int argc, char* argv[] )
   G4RunManager* runManager = new G4RunManager();
 
   // Set up physics processes
-  // G4VModularPhysicsList* physicsList = new QGSP_BERT_HP();
-  // G4VModularPhysicsList* physicsList = new LBE();
-  // Hanna: Based on initial studies chose to use QBBC 
-  G4VModularPhysicsList* physicsList = new QBBC();
+  // G4VModularPhysicsList* physicsList = new QBBC();
+  // Use QGSP_BIC_HP_EMY which contains G4EmStandardPhysics_option3 
+  G4PhysListFactory physListFactory;
+  G4VModularPhysicsList* physicsList = physListFactory.GetReferencePhysList("QGSP_BIC_HP_EMY");
   physicsList->RegisterPhysics( new G4StepLimiterPhysics() );
-  physicsList->RegisterPhysics( new G4RadioactiveDecayPhysics() ); // For the tracers
+  // physicsList->RegisterPhysics( new G4RadioactiveDecayPhysics() ); // Already included in QGSP_BIC_HP_EMY, add only if using another physics list
   runManager->SetUserInitialization( physicsList );
 
   // Set user action classes
