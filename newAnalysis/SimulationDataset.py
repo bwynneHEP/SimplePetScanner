@@ -9,7 +9,7 @@
 
 # get rid of string data
 #DATASET_EVENT, DATASET_MODULE, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z = 0, 1, 2, 3, 4, 5, 6
-DATASET_EVENT, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z = 0, 1, 2, 3, 4, 5
+DATASET_EVENT, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z, DATASET_PHOTON_LENGTH = 0, 1, 2, 3, 4, 5, 6
 
 
 import math
@@ -78,6 +78,7 @@ class SimulationDataset:
     self.energyMax = EnergyMax
     self.totalDecays = TotalDecays
     self.hitCount = 0
+    self.eventHitsMax = 0
     self.RNG = RNG
     if self.RNG == None:
       self.RNG = np.random.default_rng()
@@ -101,6 +102,9 @@ class SimulationDataset:
         self.AddHit( eventID, wholeHit, ClusterLimitMM )
       else:
         # Input file should be ordered and thus old event complete
+        if currentEvent in self.inputData:
+          self.eventHitsMax = max( self.eventHitsMax, len( self.inputData[currentEvent] ) )
+
         # Start a new event
         self.inputData[ eventID ] = [ wholeHit ]
         currentEvent = eventID
@@ -156,14 +160,17 @@ class SimulationDataset:
         self.hitCount += 1
 
 
-  def ReferenceOneEvent( self ):
+  def ReferenceOneEvent( self, RNG=None ):
 
     # NOTE: ideally this is an internal method that just returns event data by reference
 
     # Check if we have any events left
     if len( self.unusedEvents ) == 0:
       self.unusedEvents = self.usedEvents
-      RNG.shuffle( self.unusedEvents )
+      if RNG == None:
+        self.RNG.shuffle( self.unusedEvents )
+      else:
+        RNG.shuffle( self.unusedEvents )
       self.usedEvents = []
 
     eventID = self.unusedEvents.pop(-1)
@@ -198,14 +205,14 @@ class SimulationDataset:
     return modifiedEvent
 
 
-  def SampleEventsAtTimes( self, Times ):
+  def SampleEventsAtTimes( self, Times, RNG=None ):
 
     # NOTE: method for (hopefully faster) batch processing
 
     result = []
 
     for time in Times:
-      for photon in self.ReferenceOneEvent():
+      for photon in self.ReferenceOneEvent( RNG ):
 
         newPhoton = [ value for value in photon ]
         newPhoton[DATASET_TIME] += ( time * 1e9 ) # convert to ns

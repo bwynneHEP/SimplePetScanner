@@ -166,7 +166,7 @@ class SimulationDataset:
         self.hitCount += 1
 
 
-  def SampleEventsAtTimes( self, Times ):
+  def SampleEventsAtTimes( self, Times, RNG=None ):
 
     #TODO check if time precision is sufficient. Make sure times don't get too big - only have to be relative to start of batch
 
@@ -177,9 +177,14 @@ class SimulationDataset:
       # Get as many events as you can from the current sequence
       firstPart = self.SampleEventsAtTimes( Times[:firstBatchMax] )
 
-      # Reshuffle and get remaining events
-      self.RNG.shuffle( self.unusedEvents )
+      # Reshuffle
+      if RNG == None:
+        self.RNG.shuffle( self.unusedEvents )
+      else:
+        RNG.shuffle( self.unusedEvents )
       self.sampleStartIndex = 0
+
+      # Get remaining events
       secondPart = self.SampleEventsAtTimes( Times[firstBatchMax:] )
 
       # Combine the two sets of events

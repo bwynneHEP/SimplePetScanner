@@ -112,7 +112,7 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
   for i, times in enumerate( TimeSeries ):
     # Uses += to flatten across channels
     # Internally will flatten across decay events
-    photons += DecayData[i].SampleEventsAtTimes( times ) # TODO pass rng for photon sampling
+    photons += DecayData[i].SampleEventsAtTimes( times, RNG )
   photons = np.array( photons )
 
   # Apply time resolution to photons
