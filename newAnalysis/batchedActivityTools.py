@@ -23,20 +23,23 @@ def TimeSeriesSingleChannel( TimePeriod, DecayRate, RNG, StartTime=0.0 ):
   # Scale by the expected decay rate
   scaledDeltaT = unscaledDeltaT * decayReciprocal
   
-  # Add the start time as an offset (allows batching)
-  scaledDeltaT[0] += StartTime
+  # For batching, use the last event generated in the previous series as the first of this
+  # The time will be presented as an "overflow" past the end of the last time period
+  if StartTime > 0.0:
+    scaledDeltaT = np.append( StartTime, scaledDeltaT )
 
   # Convert from delta-T to time series
   timeSeries = np.cumsum( scaledDeltaT )
 
+  # For profiling
   #addonNumbers = []
 
   # Here's the unpleasant bit - make sure there are enough events to cover the time period
-  while timeSeries[-1] < ( TimePeriod + StartTime ):
+  while timeSeries[-1] < TimePeriod:
     
     # Guess how many to generate by progress so far
-    progress = ( timeSeries[-1] - StartTime ) / TimePeriod
-    eventsGuess = int( len( timeSeries ) * ( 1.0 - progress ) )
+    progress = timeSeries[-1] / TimePeriod
+    eventsGuess = int( len( timeSeries ) * ( 1.0 - progress ) / progress )
 
     # Set a minimum of 8 events - something something vectorisation
     # These cycles are more expensive than spare events
@@ -56,26 +59,30 @@ def TimeSeriesSingleChannel( TimePeriod, DecayRate, RNG, StartTime=0.0 ):
     # Append to existing series
     timeSeries = np.append( timeSeries, timeSeriesExtra )
  
+  # Profiling results
   #print( "Addons: " + str( addonNumbers ) )
-  #print( "Truncation: " + str( sum( timeSeries >= ( TimePeriod + StartTime ) ) ) )
+  #print( "Truncation: " + str( sum( timeSeries >= TimePeriod ) ) )
 
-  # Truncate to the time window (should always lose at least one event)
-  # TODO check this
-  #truncateFilter = timeSeries < ( TimePeriod + StartTime )
-  #assert len( timeSeries ) - sum( truncateFilter ) > 1, "No events truncated: time series not filled"
-  timeSeries = timeSeries[ timeSeries < ( TimePeriod + StartTime ) ]
+  # Work out where the first event in the next series should be
+  startNext = timeSeries[ timeSeries >= TimePeriod ][0] - TimePeriod
+  
+  # Truncate to the time window (should always lose at least one event) TODO check that one event always lost
+  timeSeries = timeSeries[ timeSeries < TimePeriod ]
 
-  return timeSeries
+  return timeSeries, startNext
 
 
-def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTime=0.0 ):
+def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTimes=None ):
 
   # Check inputs
   if not isinstance( DecayRates, np.ndarray ):
     DecayRates = np.array( DecayRates )
   if not DecayRates.ndim == 1:
     raise ValueError( "Decay rates must be a 1D float array with one entry per decay channel" )
-  
+  if not isinstance( StartTimes, np.ndarray ):
+    StartTimes = np.zeros( len( DecayRates ) )
+  assert len( StartTimes ) == len( DecayRates ), "One start time offset must be specified per channel"
+
   start = time.time_ns()
   
   # It's not possible to have equal numbers of events in different channels
@@ -88,7 +95,8 @@ def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTime=0.0 ):
   # This is OK since the next operation is the per-channel photon gather anyway
   result = [[]] * len( DecayRates )
   for i in range( len( DecayRates ) ):
-    result[i] = TimeSeriesSingleChannel( timeGuess, DecayRates[i], RNG )
+    result[i], startNext = TimeSeriesSingleChannel( timeGuess, DecayRates[i], RNG, StartTimes[i] )
+    StartTimes[i] = startNext
 
   end = time.time_ns()
   print( "Make time series: " + str( end-start ) + "ns" )
@@ -144,46 +152,58 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
 def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWindow, SimulationWindow, MultiWindow, \
                           EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0 ):
 
-  timeSeries = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTime=0.0 )
-  photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
+  # TODO - recycle batch ends
+  
+  # Since each decay is calculated by delta-T, use the last in each channel as an offset
+  timeOffsets = np.zeros( len( DecayRates ) )
 
-  # Find the last photon time, to make sure we don't overrun
-  lastPhotonTime = photonStream[ -1, DATASET_TIME ]
+  # Loop until end of the simulation
+  totalTime = 0.0
+  while totalTime < SimulationWindow:
 
-  # Truncate when the simulation is finished
-  if lastPhotonTime > SimulationWindow:
-    lastPhotonTime = SimulationWindow
-  endPhotonIndex = -1
+    timeSeries = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
+    print( timeOffsets )
+    photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
 
-  # Loop over the photons, opening coincidence windows
-  startPhotonIndex = 0
-  while startPhotonIndex < len( photonStream ):
-    
-    # Start the window with this photon
-    thisPhoton = photonStream[startPhotonIndex]
-    thisPhotonTime = thisPhoton[DATASET_TIME]
-    endWindowTime = thisPhotonTime + CoincidenceWindow
-    
-    # Check for needing a new batch TODO: actually make new batches
-    if endWindowTime > lastPhotonTime:
-      endPhotonIndex = startPhotonIndex
-      break
+    # Find the last photon time, to make sure we don't overrun
+    finalPhotonTime = photonStream[ -1, DATASET_TIME ]
 
-    # Create the window data by examining subsequent photons
-    endWindowIndex = -1
-    for nextPhotonIndex in range( startPhotonIndex + 1, len( photonStream ) ):
+    # Loop over the photons, opening coincidence windows
+    startWindowIndex = 0
+    while startWindowIndex < len( photonStream ):
 
-      nextPhotonTime = photonStream[ nextPhotonIndex, DATASET_TIME ]
+      # Start the window with this photon
+      thisPhoton = photonStream[startWindowIndex]
+      thisPhotonTime = thisPhoton[DATASET_TIME]
+      endWindowTime = thisPhotonTime + CoincidenceWindow
 
-      # Check if photon is within the window
-      if nextPhotonTime >= endWindowTime:
-        endWindowIndex = nextPhotonIndex
+      # Truncate when the simulation is finished
+      if endWindowTime + totalTime > SimulationWindow:
+        return
+
+      # Check for needing a new batch
+      if endWindowTime > finalPhotonTime:
+        lastPhotonTime = photonStream[ startWindowIndex - 1, DATASET_TIME ]
+        totalTime += lastPhotonTime
+        # all remaining photons, including this one, should be recycled (but avoid time overlaps)
+
         break
-    
-    yield photonStream[ startPhotonIndex : endPhotonIndex ]
 
-    # Choose whether to allow multiple concurrent windows
-    if MultiWindow:
-      startPhotonIndex += 1
-    else:
-      startPhotonIndex = endWindowIndex
+      # Create the window data by examining subsequent photons
+      endWindowIndex = -1
+      for nextPhotonIndex in range( startWindowIndex + 1, len( photonStream ) ):
+
+        nextPhotonTime = photonStream[ nextPhotonIndex, DATASET_TIME ]
+
+        # Check if photon is within the window
+        if nextPhotonTime >= endWindowTime:
+          endWindowIndex = nextPhotonIndex
+          break
+     
+      yield photonStream[ startWindowIndex : endWindowIndex ]
+
+      # Choose whether to allow multiple concurrent windows
+      if MultiWindow:
+        startWindowIndex += 1
+      else:
+        startWindowIndex = endWindowIndex
