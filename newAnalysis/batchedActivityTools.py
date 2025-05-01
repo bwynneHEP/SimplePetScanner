@@ -4,6 +4,13 @@ import numpy as np
 import time
 
 
+# A method to create a set of time values corresponding to a given decay rate
+# The values will be sufficient to cover the TimePeriod argument
+# TimePeriod and DecayRate must have consistent units
+# RNG is passed as an argument, following numpy recommendations
+# There is effectively a "carry" operation in the form of StartTime:
+#  this method will return the first event after the end of TimePeriod,
+#  and this can then be passed as the first event in the next series
 def TimeSeriesSingleChannel( TimePeriod, DecayRate, RNG, StartTime=0.0 ):
 
   # Multiply by reciprocal is still faster
@@ -72,6 +79,11 @@ def TimeSeriesSingleChannel( TimePeriod, DecayRate, RNG, StartTime=0.0 ):
   return timeSeries, startNext
 
 
+# To generate multiple channels of decay data at different rates
+# Specify a target (max) number of decays per channel with BatchSize
+# The code will then calculate the time period that all decays
+#  must populate, regardless of their decay rate
+# This allows consistent combination of decay channels later
 def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTimes=None ):
 
   # Check inputs
@@ -87,7 +99,7 @@ def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTimes=None ):
   
   # It's not possible to have equal numbers of events in different channels
   # Even if they all had the same decay rate, the random element means they don't cover the same time range
-  # So, define an expected time range from the fastest decay, and ensure all other channels cover it
+  # So, define an expected time range from the fastest decay, and ensure all channels cover it
   fastestDecay = np.max( DecayRates )
   timeGuess = BatchSize / fastestDecay
 
@@ -101,9 +113,11 @@ def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTimes=None ):
   end = time.time_ns()
   print( "Make time series: " + str( end-start ) + "ns" )
 
-  return result
+  return result, timeGuess
 
 
+# Take multiple decay channels and sample G4 photons for each channel
+# Then merge all photons into a single timeline for coincidence calulation
 def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0 ):
 
   # Check inputs
@@ -149,6 +163,18 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
   return photons
 
 
+# Code that uses the above methods to generate a stream of coincidence windows
+# In each window, details of all compatible photons are returned
+# BatchSize allows control of the number of decays in memory at once,
+#  but the code should run multiple batches until the SimulationWindow is
+#  filled, i.e. the total time will be broken into an unknown number of
+#  processing steps, each containing a (roughly) constant number of events
+# DecayRates and DecayData describe each channel under consideration,
+#  giving the rate of decays in that channel, and the dataset containing
+#  the Geant4 data for those decays
+# CoincidenceWindow is the time (ns) to collect photons for a coincidence,
+#  and MultiWindow is a boolean flag permitting each photon to open a new
+#  coincidence window (or not, if there is an existing window)
 def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWindow, SimulationWindow, MultiWindow, \
                           EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0 ):
 
@@ -161,7 +187,7 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
   totalTime = 0.0
   while totalTime < SimulationWindow:
 
-    timeSeries = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
+    timeSeries, batchTimePeriod = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
     print( timeOffsets )
     photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
 
@@ -183,10 +209,11 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
 
       # Check for needing a new batch
       if endWindowTime > finalPhotonTime:
-        lastPhotonTime = photonStream[ startWindowIndex - 1, DATASET_TIME ]
-        totalTime += lastPhotonTime
+        #lastPhotonTime = photonStream[ startWindowIndex - 1, DATASET_TIME ]
+        totalTime += batchTimePeriod #lastPhotonTime
         # all remaining photons, including this one, should be recycled (but avoid time overlaps)
 
+        # get all unused photons, make a new "leftover" list with times minus batchTimePeriod
         break
 
       # Create the window data by examining subsequent photons
