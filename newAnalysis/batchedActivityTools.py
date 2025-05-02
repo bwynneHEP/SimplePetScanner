@@ -73,7 +73,7 @@ def TimeSeriesSingleChannel( TimePeriod, DecayRate, RNG, StartTime=0.0 ):
   # Work out where the first event in the next series should be
   startNext = timeSeries[ timeSeries >= TimePeriod ][0] - TimePeriod
   
-  # Truncate to the time window (should always lose at least one event) TODO check that one event always lost
+  # Truncate to the time window (should always lose at least one event)
   timeSeries = timeSeries[ timeSeries < TimePeriod ]
 
   return timeSeries, startNext
@@ -175,21 +175,26 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
 # CoincidenceWindow is the time (ns) to collect photons for a coincidence,
 #  and MultiWindow is a boolean flag permitting each photon to open a new
 #  coincidence window (or not, if there is an existing window)
+# TODO decide on time units - ns versus s (currently mixed)
 def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWindow, SimulationWindow, MultiWindow, \
                           EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0 ):
 
-  # TODO - recycle batch ends
-  
   # Since each decay is calculated by delta-T, use the last in each channel as an offset
   timeOffsets = np.zeros( len( DecayRates ) )
 
   # Loop until end of the simulation
   totalTime = 0.0
+  leftoverPhotons = None
   while totalTime < SimulationWindow:
 
+    # Use the previous methods to create the photon timeline
     timeSeries, batchTimePeriod = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
-    print( timeOffsets )
     photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
+
+    # Re-use previous batch photons that were leftover
+    if leftoverPhotons is not None:
+      photonStream = np.append( leftoverPhotons, photonStream, axis=0 )
+      photonStream = photonStream[ photonStream[:,DATASET_TIME].argsort() ] # might be some overlap, need to sort
 
     # Find the last photon time, to make sure we don't overrun
     finalPhotonTime = photonStream[ -1, DATASET_TIME ]
@@ -209,11 +214,7 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
 
       # Check for needing a new batch
       if endWindowTime > finalPhotonTime:
-        #lastPhotonTime = photonStream[ startWindowIndex - 1, DATASET_TIME ]
-        totalTime += batchTimePeriod #lastPhotonTime
-        # all remaining photons, including this one, should be recycled (but avoid time overlaps)
-
-        # get all unused photons, make a new "leftover" list with times minus batchTimePeriod
+        totalTime += ( batchTimePeriod * 1e9 )
         break
 
       # Create the window data by examining subsequent photons
@@ -234,3 +235,10 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
         startWindowIndex += 1
       else:
         startWindowIndex = endWindowIndex
+
+    # We've broken out of the loop because it's the end of a batch
+    # Recycle the leftover photons for the next batch
+    leftoverPhotons = photonStream[ startWindowIndex : ]
+    
+    # Offset times for a new batch
+    leftoverPhotons[ :, DATASET_TIME ] -= ( batchTimePeriod * 1e9 )
