@@ -1,7 +1,7 @@
 from SimulationDataset import *
 
 import numpy as np
-import time
+#import time
 
 
 # A method to create a set of time values corresponding to a given decay rate
@@ -95,7 +95,7 @@ def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTimes=None ):
     StartTimes = np.zeros( len( DecayRates ) )
   assert len( StartTimes ) == len( DecayRates ), "One start time offset must be specified per channel"
 
-  start = time.time_ns()
+  #start = time.time_ns()
   
   # It's not possible to have equal numbers of events in different channels
   # Even if they all had the same decay rate, the random element means they don't cover the same time range
@@ -110,8 +110,8 @@ def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTimes=None ):
     result[i], startNext = TimeSeriesSingleChannel( timeGuess, DecayRates[i], RNG, StartTimes[i] )
     StartTimes[i] = startNext
 
-  end = time.time_ns()
-  print( "Make time series: " + str( end-start ) + "ns" )
+  #end = time.time_ns()
+  #print( "Make time series: " + str( end-start ) + "ns" )
 
   return result, timeGuess
 
@@ -127,7 +127,7 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
     if not isinstance( thing, SimulationDataset ):
       raise ValueError( "DecayData must be instances of the SimulationDataset class" )
 
-  start = time.time_ns()
+  #start = time.time_ns()
 
   # Convert decays into photons using data samples
   photons = []
@@ -157,8 +157,8 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
   if len( photons ) > 0:
     photons = photons[ photons[:,DATASET_TIME].argsort() ]
 
-  end = time.time_ns()
-  print( "Create photon stream: " + str( end-start ) + "ns" )
+  #end = time.time_ns()
+  #print( "Create photon stream: " + str( end-start ) + "ns" )
 
   return photons
 
