@@ -137,6 +137,10 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
     photons += DecayData[i].SampleEventsAtTimes( times, RNG )
   photons = np.array( photons )
 
+  # If there are no photons then skip the rest
+  if len( photons ) == 0:
+    return photons
+
   # Apply time resolution to photons
   if TimeResolution > 0.0:
     photonTimeOffsets = RNG.normal( 0, TimeResolution, size=len(photons) )
@@ -182,6 +186,10 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
   # Since each decay is calculated by delta-T, use the last in each channel as an offset
   timeOffsets = np.zeros( len( DecayRates ) )
 
+  # profiling
+  #yieldCounter = 0
+  #batchCounter = 0
+
   # Loop until end of the simulation
   totalTime = 0.0
   leftoverPhotons = None
@@ -191,8 +199,14 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
     timeSeries, batchTimePeriod = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
     photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
 
+    #batchCounter += 1
+
+    # Potentially this could just be an empty batch
+    if len( photonStream ) == 0:
+      continue
+
     # Re-use previous batch photons that were leftover
-    if leftoverPhotons is not None:
+    if leftoverPhotons is not None and len( leftoverPhotons ) > 0:
       photonStream = np.append( leftoverPhotons, photonStream, axis=0 )
       photonStream = photonStream[ photonStream[:,DATASET_TIME].argsort() ] # might be some overlap, need to sort
 
@@ -210,6 +224,8 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
 
       # Truncate when the simulation is finished
       if endWindowTime + totalTime > SimulationWindow:
+        #print( "Total batches: " + str( batchCounter ) )
+        #print( "Yielded " + str( yieldCounter/batchCounter ) + " windows/batch" )
         return
 
       # Check for needing a new batch
@@ -228,6 +244,8 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
           endWindowIndex = nextPhotonIndex
           break
      
+      #yieldCounter += 1
+
       yield photonStream[ startWindowIndex : endWindowIndex ]
 
       # Choose whether to allow multiple concurrent windows
