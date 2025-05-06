@@ -179,7 +179,8 @@ class SimulationDataset:
       firstPart = self.SampleEventsAtTimes( Times[:firstBatchMax] )
 
       # Reshuffle
-      # TODO: test if it's better to shuffle the event data than to always do gather ops
+      # Note it is a lot faster to shuffle this set of indices
+      #  than to shuffle the actual data
       if RNG == None:
         self.RNG.shuffle( self.unusedEvents )
       else:
