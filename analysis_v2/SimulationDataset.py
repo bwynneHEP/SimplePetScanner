@@ -220,7 +220,7 @@ class SimulationDataset:
         # Flattened across events
         result.append( newPhoton )
 
-    return result
+    return np.array( result )
 
 
   def size( self ):
