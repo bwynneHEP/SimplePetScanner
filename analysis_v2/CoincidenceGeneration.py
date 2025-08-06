@@ -127,12 +127,18 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
   #start = time.time_ns()
 
   # Convert decays into photons using data samples
-  # Internally this method will flatten across decay events
+  # Internally SampleEventsAtTimes() will flatten across decay events
   photons = DecayData[0].SampleEventsAtTimes( TimeSeries[0], RNG )
+
+  # Flatten all decay channels into a single set of photons by appending
   for i in range( 1, len( TimeSeries ) ):
 
-    # Flatten all decay channels into a single set of photons
-    photons = np.append( photons, DecayData[i].SampleEventsAtTimes( TimeSeries[i], RNG ), axis=0 )
+    morePhotons = DecayData[i].SampleEventsAtTimes( TimeSeries[i], RNG )
+
+    if len( photons ) == 0:
+      photons = morePhotons
+    elif len( morePhotons ) > 0:
+      photons = np.append( photons, morePhotons, axis=0 )
 
   # If there are no photons then skip the rest
   if len( photons ) == 0:
