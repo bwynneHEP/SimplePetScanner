@@ -1,14 +1,7 @@
 # File format defined in EnergyCounter.cpp:
-#   std::cout << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << entry.first << " " << entry.second / keV << " ";
-#   std::cout << m_averageTimeMap[ entry.first ] / ( entry.second * ns ) << " ";
-#   std::cout << m_averageRMap[ entry.first ] / ( entry.second * mm ) << " ";
-#   std::cout << m_averagePhiMap[ entry.first ] / entry.second << " ";
-#   std::cout << m_averageZMap[ entry.first ] / ( entry.second * mm ) << std::endl;
-# so
-# EventID ModuleID Energy Time R Phi Z
+# EventID ModuleID[xN] Energy Time R Phi Z
 
-# get rid of string data
-#DATASET_EVENT, DATASET_MODULE, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z = 0, 1, 2, 3, 4, 5, 6
+# Only define positions for main quantities
 DATASET_EVENT, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z, DATASET_PHOTON_LENGTH = 0, 1, 2, 3, 4, 5, 6
 
 
@@ -37,12 +30,15 @@ class CsvFileReader:
 
     splitLine = self.nextLine.split(" ")
 
+    # There's a variable amount of potential module info
+    moduleIDFields = len( splitLine ) - DATASET_PHOTON_LENGTH
+
     # Assemble hit info
     eventID = int( splitLine[DATASET_EVENT] )
     #moduleID = splitLine[DATASET_MODULE]
     #wholeHit = [ eventID, moduleID ] # Not floats
     wholeHit = [ eventID ] # Not floats
-    for i in range( 2, len( splitLine ) ):
+    for i in range( 1 + moduleIDFields, len( splitLine ) ):
       wholeHit.append( float( splitLine[i] ) )
 
     self.nextLine = self.inputFile.readline()
@@ -72,8 +68,6 @@ class SimulationDataset:
 
   def __init__( self, InputPath, TotalDecays, EnergyMin=None, EnergyMax=None, ClusterLimitMM=None, RNG=None ):
     self.inputData = {}
-    self.unusedEvents = []
-    self.usedEvents = []
     self.energyMin = EnergyMin
     self.energyMax = EnergyMax
     self.totalDecays = TotalDecays
@@ -112,10 +106,6 @@ class SimulationDataset:
         self.hitCount += 1
 
     print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( self.hitCount / self.totalDecays ) + " hits/event" )
-
-    # Allow for decays that weren't detected
-    for i in range( self.totalDecays ):
-      self.unusedEvents.append( i )
 
 
   def AddHit( self, ExistingEventID, NewHit, ClusterLimitMM ):
@@ -158,69 +148,6 @@ class SimulationDataset:
       if keepHit:
         self.inputData[ ExistingEventID ].append( NewHit )
         self.hitCount += 1
-
-
-  def ReferenceOneEvent( self, RNG=None ):
-
-    # NOTE: ideally this is an internal method that just returns event data by reference
-
-    # Check if we have any events left
-    if len( self.unusedEvents ) == 0:
-      self.unusedEvents = self.usedEvents
-      if RNG == None:
-        self.RNG.shuffle( self.unusedEvents )
-      else:
-        RNG.shuffle( self.unusedEvents )
-      self.usedEvents = []
-
-    eventID = self.unusedEvents.pop(-1)
-    self.usedEvents.append( eventID )
-    if eventID in self.inputData:
-      return self.inputData[ eventID ]
-    else:
-      return []
-
-
-  def SampleOneEvent( self, EnergyResolution=0.0, TimeResolution=0.0 ):
-
-    # NOTE: older-style method for retrieving events one-at-a-time with resolution effects applied
-
-    modifiedEvent = []
-    for photon in self.ReferenceOneEvent():
-
-      # Apply resolution effects to each measured photon
-      newPhoton = [ value for value in photon ]
-      newPhoton[DATASET_ENERGY] = photon[DATASET_ENERGY] * RNG.normal( 1.0, EnergyResolution ) # Energy resolution as a percentage
-      newPhoton[DATASET_TIME] = photon[DATASET_TIME] + RNG.normal( 0.0, TimeResolution ) # Time resolution as absolute ns
-
-      # Apply energy cut to modified photon
-      keepPhoton = True
-      if self.energyMin is not None and newPhoton[DATASET_ENERGY] < self.energyMin:
-        keepPhoton = False
-      if self.energyMax is not None and newPhoton[DATASET_ENERGY] > self.energyMax:
-        keepPhoton = False
-      if keepPhoton:
-        modifiedEvent.append( newPhoton )
-
-    return modifiedEvent
-
-
-  def SampleEventsAtTimes( self, Times, RNG=None ):
-
-    # NOTE: method for (hopefully faster) batch processing
-
-    result = []
-
-    for time in Times:
-      for photon in self.ReferenceOneEvent( RNG ):
-
-        newPhoton = [ value for value in photon ]
-        newPhoton[DATASET_TIME] += ( time * 1e9 ) # convert to ns
-
-        # Flattened across events
-        result.append( newPhoton )
-
-    return np.array( result )
 
 
   def size( self ):
@@ -352,8 +279,10 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
     else:
       print( "Using a high-granularity \"Crystal\" detector geometry with clusterisation at " + str(ClusterLimitMM) + "mm" )
 
+  inputData = SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, ClusterLimitMM )
   if UseNumpy:
-    import NumpyDataset as npd
-    return npd.SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, ClusterLimitMM )
+    import NumpyDatasetReader
+    return NumpyDatasetReader( inputData )
   else:
-    return SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, ClusterLimitMM )
+    import LegacyDatasetReader
+    return LegacyDatasetReader( inputData )
