@@ -6,17 +6,14 @@
 #include "G4LogicalVolume.hh"
 #include "G4VisAttributes.hh"
 
-#include <fstream>
-
-SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4int nCopies )
+SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4int nCopies, EnergyCounter * Counter )
 {
   // Precalculating everything avoids a memory leak
   m_positions.reserve( nCopies );
   m_rotations.reserve( nCopies );
   m_visions.reserve( nCopies );
-
-  // debug file
-  std::ofstream outputFile = std::ofstream( "geomIDs.csv" );
+  m_geometryIDs.reserve( nCopies );
+  m_counter = Counter;
 
   for ( G4int copyNo = 0; copyNo < nCopies; ++copyNo )
   {
@@ -32,8 +29,8 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
     G4int const block = floor( inRing / crystalsPerBlock );
     G4int const inBlock = inRing % crystalsPerBlock;
 
-// so I think rsector is like block, and ring is like module. No submodule. Crystals in block is crystalID?
-outputFile << copyNo << " " << ring << " " << block << " " << inBlock << std::endl;
+    // For GATE compatibility, I think rsector is like block, and ring is like module or submodule. Crystals in block is crystalID
+    m_geometryIDs.emplace_back( std::initializer_list<int>{ring, block, inBlock} );
 
     // mini-blocks are 5x5 crystals, arranged into 2x4 blocks (2 in the axial direction I think)
     // blocks are therefore 10x20
@@ -75,19 +72,19 @@ outputFile << copyNo << " " << ring << " " << block << " " << inBlock << std::en
 
     // Set the rotation
     G4RotationMatrix * rotation = new G4RotationMatrix();
-    //rotation->rotateZ( -phi );
     rotation->rotateZ( -position.getPhi() );
     m_rotations.push_back( rotation );
 
     // Visual properties
     G4VisAttributes* vis = new G4VisAttributes();
     //vis->SetColor( 0.0, G4double( copyNo ) / G4double( nCopies ), 0.0, 1.0 ); // uniform
-    //vis->SetColor( 0.0, G4double( rand() % nCopies ) / G4double( nCopies ), 0.0, 1.0 ); // random speckle
-    vis->SetColor( (float)inBlock / (float)crystalsPerBlock, (float)block / (float)blocksPerRing, (float)ring / (float)nRings, 1.0 ); // GATE debug
+    vis->SetColor( 0.0, G4double( rand() % nCopies ) / G4double( nCopies ), 0.0, 1.0 ); // random speckle
+    //vis->SetColor( (float)inBlock / (float)crystalsPerBlock, (float)block / (float)blocksPerRing, (float)ring / (float)nRings, 1.0 ); // GATE debug
     m_visions.push_back( vis );
   }
 
-  outputFile.close();
+  // Push geometry ID information to the SD for output
+  m_counter->SetGeometryIDs( m_geometryIDs );
 }
 
 void SiemensQuadraParameterisationCrystals::ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
