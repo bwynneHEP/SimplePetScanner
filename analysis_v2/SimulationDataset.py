@@ -17,6 +17,7 @@ class CsvFileReader:
     self.inputFile = open( InputPath )
     self.nextLine = self.inputFile.readline()
     self.currentEvent = []
+    self.moduleMap = {}
 
   def __del__( self ):
     self.inputFile.close()
@@ -26,7 +27,7 @@ class CsvFileReader:
 
   def ReadHit( self ):
     if not self.Open():
-      return None
+      return None, None
 
     splitLine = self.nextLine.split(" ")
 
@@ -34,12 +35,18 @@ class CsvFileReader:
     moduleIDFields = len( splitLine ) - DATASET_PHOTON_LENGTH
 
     # Assemble hit info
-    eventID = int( splitLine[DATASET_EVENT] )
-    #moduleID = splitLine[DATASET_MODULE]
-    #wholeHit = [ eventID, moduleID ] # Not floats
-    wholeHit = [ eventID ] # Not floats
+    wholeHit = [ int( splitLine[DATASET_EVENT] ) ]
     for i in range( 1 + moduleIDFields, len( splitLine ) ):
       wholeHit.append( float( splitLine[i] ) )
+
+    # Assemble module ID info
+    moduleIDs = []
+    for i in range( 1, moduleIDFields + 1 ):
+      moduleIDs.append( int( splitLine[i] ) )
+
+    # Save module ID map
+    hitGlobalPos = [ wholeHit[ DATASET_R ], wholeHit[ DATASET_PHI ], wholeHit[ DATASET_Z ] ]
+    self.moduleMap[ hitGlobalPos ] = moduleIDs
 
     self.nextLine = self.inputFile.readline()
     return wholeHit
@@ -59,8 +66,8 @@ class CsvFileReader:
       if newHit[DATASET_EVENT] == self.currentEvent[0][DATASET_EVENT]:
         self.currentEvent.append( newHit )
       else:
-        newEvent = self.currentEvent
-        self.currentEvent = [newHit]
+        newEvent = self.currentEvent # save finished event
+        self.currentEvent = [newHit] # open unfinished event
         return newEvent
 
 
@@ -105,6 +112,9 @@ class SimulationDataset:
         eventCount += 1
         self.hitCount += 1
 
+    # Save the module map info
+    self.moduleMap = inputFile.moduleMap
+
     print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( self.hitCount / self.totalDecays ) + " hits/event" )
 
 
@@ -139,8 +149,7 @@ class SimulationDataset:
           mergedPhi = ( newE*newPhi + oldE*oldPhi ) / mergedE
           mergedR = ( newE*newR + oldE*oldR ) / mergedE
           mergedT = ( newE*NewHit[DATASET_TIME] + oldE*oldHit[DATASET_TIME] ) / mergedE
-          #mergedMOD = oldHit[DATASET_MODULE] + "+" + NewHit[DATASET_MODULE]
-          #self.inputData[ ExistingEventID ][ oldHitIndex ] = [ oldHit[DATASET_EVENT], mergedMOD, mergedE, mergedT, mergedR, mergedPhi, mergedZ ]
+          #mergedMOD = oldHit[DATASET_MODULE] + "+" + NewHit[DATASET_MODULE] # TODO update module map to add this
           self.inputData[ ExistingEventID ][ oldHitIndex ] = [ oldHit[DATASET_EVENT], mergedE, mergedT, mergedR, mergedPhi, mergedZ ]
           keepHit = False
           break

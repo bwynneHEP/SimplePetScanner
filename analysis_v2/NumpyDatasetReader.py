@@ -1,7 +1,7 @@
 # A class for (faster) data manipulation with zero-padded numpy arrays
 
 import numpy as np
-from SimulationDataset import DATASET_ENERGY, DATASET_TIME, DATASET_PHOTON_LENGTH
+from SimulationDataset import DATASET_EVENT, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z, DATASET_PHOTON_LENGTH
 
 class NumpyDatasetReader:
 
@@ -28,6 +28,12 @@ class NumpyDatasetReader:
 
     # Finished loading, so clear the input data
     self.inputDataset.inputData = None
+
+    # Do you know a better way to just pick one element from a map?!?
+    self.moduleIDsLength = 0
+    for value in self.inputDataset.moduleMap.values():
+      self.moduleIDsLength = len( value )
+      break
 
 
   def SampleEventsAtTimes( self, Times, RNG=None ):
@@ -77,3 +83,11 @@ class NumpyDatasetReader:
 
   def size( self ):
     return self.totalDecays
+
+  def HitsToModules( self, Hits ):
+
+    outputArray = np.zeros( [ Hits.shape[0], self.moduleIDsLength ] )
+
+    for i, hit in enumerate( Hits ):
+      hitGlobal = hit[ [DATASET_R, DATASET_PHI, DATASET_Z] ]
+      outputArray[i, :] = self.inputDataset.moduleMap[ hitGlobal ]

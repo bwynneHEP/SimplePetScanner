@@ -1,7 +1,7 @@
 # A class for using the data in more-or-less the same format as it is loaded
 
 import numpy as np
-from SimulationDataset import DATASET_ENERGY, DATASET_TIME
+from SimulationDataset import DATASET_EVENT, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z, DATASET_PHOTON_LENGTH
 
 class LegacyDatasetReader:
 
@@ -16,6 +16,12 @@ class LegacyDatasetReader:
     # Allow for decays that weren't detected
     for i in range( self.totalDecays ):
       self.unusedEvents.append( i )
+
+    # Do you know a better way to just pick one element from a map?!?
+    self.moduleIDsLength = 0
+    for value in self.inputDataset.moduleMap.values():
+      self.moduleIDsLength = len( value )
+      break
 
 
   def ReferenceOneEvent( self, RNG=None ):
@@ -83,3 +89,11 @@ class LegacyDatasetReader:
 
   def size( self ):
     return self.totalDecays
+
+  def HitsToModules( self, Hits ):
+
+    outputArray = np.zeros( [ Hits.shape[0], self.moduleIDsLength ] )
+
+    for i, hit in enumerate( Hits ):
+      hitGlobal = hit[ [DATASET_R, DATASET_PHI, DATASET_Z] ]
+      outputArray[i, :] = self.inputDataset.moduleMap[ hitGlobal ]
