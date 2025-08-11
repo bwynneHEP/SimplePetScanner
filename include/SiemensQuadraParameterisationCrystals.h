@@ -24,7 +24,7 @@ class SiemensQuadraParameterisationCrystals : public G4VPVParameterisation
     std::vector< G4RotationMatrix* > m_rotations;
     std::vector< G4VisAttributes* > m_visions;
     std::vector< std::vector< int > > m_geometryIDs;
-    EnergyCounter * m_counter;
+    EnergyCounter * m_counter = nullptr;
 };
 
 #endif

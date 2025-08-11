@@ -84,7 +84,7 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
   }
 
   // Push geometry ID information to the SD for output
-  m_counter->SetGeometryIDs( m_geometryIDs );
+  if ( m_counter ) m_counter->SetGeometryIDs( m_geometryIDs );
 }
 
 void SiemensQuadraParameterisationCrystals::ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
