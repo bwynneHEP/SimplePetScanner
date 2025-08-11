@@ -1,7 +1,7 @@
 # A class for (faster) data manipulation with zero-padded numpy arrays
 
 import numpy as np
-import SimulationDataset
+from SimulationDataset import DATASET_ENERGY, DATASET_TIME, DATASET_PHOTON_LENGTH
 
 class NumpyDatasetReader:
 
@@ -22,12 +22,12 @@ class NumpyDatasetReader:
     # Might not be worth the trade for the numpy speedup
     # Alternatively might need to use awkward arrays instead
     self.numpyData = np.zeros( [self.totalDecays, self.eventHitsMax, DATASET_PHOTON_LENGTH] )
-    for eventIndex in self.InputDataset.inputData:
-      for photonIndex in range( len( self.InputDataset.inputData[ eventIndex ] ) ):
-        self.numpyData[ eventIndex, photonIndex, : ] = self.InputDataset.inputData[ eventIndex ][ photonIndex ]
+    for eventIndex in self.inputDataset.inputData:
+      for photonIndex in range( len( self.inputDataset.inputData[ eventIndex ] ) ):
+        self.numpyData[ eventIndex, photonIndex, : ] = self.inputDataset.inputData[ eventIndex ][ photonIndex ]
 
     # Finished loading, so clear the input data
-    self.InputDataset.inputData = None
+    self.inputDataset.inputData = None
 
 
   def SampleEventsAtTimes( self, Times, RNG=None ):

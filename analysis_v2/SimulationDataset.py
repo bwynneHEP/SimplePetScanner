@@ -282,7 +282,7 @@ def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDeca
   inputData = SimulationDataset( outputFileName, TotalDecays, EnergyMin, EnergyMax, ClusterLimitMM )
   if UseNumpy:
     import NumpyDatasetReader
-    return NumpyDatasetReader( inputData )
+    return NumpyDatasetReader.NumpyDatasetReader( inputData )
   else:
     import LegacyDatasetReader
-    return LegacyDatasetReader( inputData )
+    return LegacyDatasetReader.LegacyDatasetReader( inputData )

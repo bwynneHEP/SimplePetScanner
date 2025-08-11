@@ -1,7 +1,7 @@
 # A class for using the data in more-or-less the same format as it is loaded
 
 import numpy as np
-import SimulationDataset
+from SimulationDataset import DATASET_ENERGY, DATASET_TIME
 
 class LegacyDatasetReader:
 
@@ -9,9 +9,9 @@ class LegacyDatasetReader:
     self.inputDataset = InputDataset
     self.unusedEvents = []
     self.usedEvents = []
-    self.energyMin = InputDataset.EnergyMin
-    self.energyMax = InputDataset.EnergyMax
-    self.totalDecays = InputDataset.TotalDecays
+    self.energyMin = InputDataset.energyMin
+    self.energyMax = InputDataset.energyMax
+    self.totalDecays = InputDataset.totalDecays
 
     # Allow for decays that weren't detected
     for i in range( self.totalDecays ):
@@ -26,15 +26,15 @@ class LegacyDatasetReader:
     if len( self.unusedEvents ) == 0:
       self.unusedEvents = self.usedEvents
       if RNG == None:
-        self.InputDataset.RNG.shuffle( self.unusedEvents )
+        self.inputDataset.RNG.shuffle( self.unusedEvents )
       else:
         RNG.shuffle( self.unusedEvents )
       self.usedEvents = []
 
     eventID = self.unusedEvents.pop(-1)
     self.usedEvents.append( eventID )
-    if eventID in self.InputDataset.inputData:
-      return self.InputDataset.inputData[ eventID ]
+    if eventID in self.inputDataset.inputData:
+      return self.inputDataset.inputData[ eventID ]
     else:
       return []
 
