@@ -71,12 +71,33 @@ G4bool EnergyCounter::ProcessHits( G4Step* step, G4TouchableHistory* history )
 // At the end of an event, store the energy collected in this detector
 void EnergyCounter::EndOfEvent( G4HCofThisEvent* )
 {
+  // Check if the geometry ID lookup is compatible with this data
+  int maxID = 0;
+  for ( const auto& entry : m_totalEnergyMap )
+  {
+    if ( entry.first > maxID ) maxID = entry.first;
+  }
+  bool useGeometryIDs = ( maxID < m_geometryIDs.size() );
+
   // Only output information for hits (since detector occupancy low)
   for ( const auto& entry : m_totalEnergyMap )
   {
+    m_outputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " ";
+
+    // If there is a geometry ID lookup (e.g. for STIR/GATE compatibility) then use it
+    if ( useGeometryIDs )
+    {
+      // Can be multiple ID values, e.g. crystal, block, ring, etc.
+      for ( const auto& idValue : m_geometryIDs[ entry.first ] ) m_outputFile << idValue << " ";
+    }
+    else
+    {
+      m_outputFile << entry.first << " ";
+    }
+
     // Divide by the unit when outputting
     // see http://geant4.web.cern.ch/sites/geant4.web.cern.ch/files/geant4/collaboration/working_groups/electromagnetic/gallery/units/SystemOfUnits.html
-    m_outputFile << G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID() << " " << entry.first << " " << entry.second / keV << " ";
+    m_outputFile << entry.second / keV << " ";
     m_outputFile << m_averageTimeMap[ entry.first ] / ( entry.second * ns ) << " ";
     m_outputFile << m_averageRMap[ entry.first ] / ( entry.second * mm ) << " ";
     m_outputFile << m_averagePhiMap[ entry.first ] / entry.second << " ";

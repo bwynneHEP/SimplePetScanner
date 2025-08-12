@@ -6,12 +6,14 @@
 #include "G4LogicalVolume.hh"
 #include "G4VisAttributes.hh"
 
-SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4int nCopies )
+SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4int nCopies, EnergyCounter * Counter )
 {
   // Precalculating everything avoids a memory leak
   m_positions.reserve( nCopies );
   m_rotations.reserve( nCopies );
   m_visions.reserve( nCopies );
+  m_geometryIDs.reserve( nCopies );
+  m_counter = Counter;
 
   for ( G4int copyNo = 0; copyNo < nCopies; ++copyNo )
   {
@@ -27,12 +29,17 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
     G4int const block = floor( inRing / crystalsPerBlock );
     G4int const inBlock = inRing % crystalsPerBlock;
 
+    // For GATE compatibility, I think rsector is like block, and ring is like module or submodule. Crystals in block is crystalID
+    m_geometryIDs.emplace_back( std::initializer_list<int>{ring, block, inBlock} );
+
     // mini-blocks are 5x5 crystals, arranged into 2x4 blocks (2 in the axial direction I think)
     // blocks are therefore 10x20
     G4int const crystalsBlockAxial = 10;
     G4int const crystalsBlockTrans = 20;
-    G4int const blockTrans = floor( inBlock / crystalsBlockAxial );
-    G4int const blockAxial = inBlock % crystalsBlockAxial;
+    //G4int const blockTrans = floor( inBlock / crystalsBlockAxial );
+    //G4int const blockAxial = inBlock % crystalsBlockAxial;
+    G4int const blockAxial = floor( inBlock / crystalsBlockTrans ); // ideally this swap will match GATE
+    G4int const blockTrans = inBlock % crystalsBlockTrans;
 
     // Phi position is block within ring
     G4double const deltaPhi = 360.0 * deg / G4double( blocksPerRing );
@@ -59,20 +66,25 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
 
     // Set the translation
     G4ThreeVector position;
-    position.setRhoPhiZ( r + dR, phi + dPhi, z + dZ );
+    //position.setRhoPhiZ( r + dR, phi + dPhi, z + dZ );
+    position.setRhoPhiZ( r + dR, phi + dPhi - (90*deg), z + dZ ); // added rotation to match GATE
     m_positions.push_back( position );
 
     // Set the rotation
     G4RotationMatrix * rotation = new G4RotationMatrix();
-    rotation->rotateZ( -phi );
+    rotation->rotateZ( -position.getPhi() );
     m_rotations.push_back( rotation );
 
     // Visual properties
     G4VisAttributes* vis = new G4VisAttributes();
-    //vis->SetColor( 0.0, G4double( copyNo ) / G4double( nCopies ), 0.0, 1.0 );
-    vis->SetColor( 0.0, G4double( rand() % nCopies ) / G4double( nCopies ), 0.0, 1.0 );
+    //vis->SetColor( 0.0, G4double( copyNo ) / G4double( nCopies ), 0.0, 1.0 ); // uniform
+    vis->SetColor( 0.0, G4double( rand() % nCopies ) / G4double( nCopies ), 0.0, 1.0 ); // random speckle
+    //vis->SetColor( (float)inBlock / (float)crystalsPerBlock, (float)block / (float)blocksPerRing, (float)ring / (float)nRings, 1.0 ); // GATE debug
     m_visions.push_back( vis );
   }
+
+  // Push geometry ID information to the SD for output
+  if ( m_counter ) m_counter->SetGeometryIDs( m_geometryIDs );
 }
 
 void SiemensQuadraParameterisationCrystals::ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const
