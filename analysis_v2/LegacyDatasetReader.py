@@ -90,10 +90,5 @@ class LegacyDatasetReader:
   def size( self ):
     return self.totalDecays
 
-  def HitsToModules( self, Hits ):
-
-    outputArray = np.zeros( [ Hits.shape[0], self.moduleIDsLength ] )
-
-    for i, hit in enumerate( Hits ):
-      hitGlobal = hit[ [DATASET_R, DATASET_PHI, DATASET_Z] ]
-      outputArray[i, :] = self.inputDataset.moduleMap[ hitGlobal ]
+  def GetModuleIDs( self ):
+    return self.inputDataset.moduleMap

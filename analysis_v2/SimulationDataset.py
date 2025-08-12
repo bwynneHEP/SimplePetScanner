@@ -45,7 +45,8 @@ class CsvFileReader:
       moduleIDs.append( int( splitLine[i] ) )
 
     # Save module ID map
-    hitGlobalPos = [ wholeHit[ DATASET_R ], wholeHit[ DATASET_PHI ], wholeHit[ DATASET_Z ] ]
+    # Note that it's fine to use a tuple () as a dict key, but not a list []
+    hitGlobalPos = ( wholeHit[ DATASET_R ], wholeHit[ DATASET_PHI ], wholeHit[ DATASET_Z ] )
     self.moduleMap[ hitGlobalPos ] = moduleIDs
 
     self.nextLine = self.inputFile.readline()
@@ -100,7 +101,7 @@ class SimulationDataset:
 
       # Multiple lines (hits) can go into a single event
       if eventID in self.inputData:
-        self.AddHit( eventID, wholeHit, ClusterLimitMM )
+        self.AddHit( eventID, wholeHit, ClusterLimitMM, inputFile.moduleMap )
       else:
         # Input file should be ordered and thus old event complete
         if currentEvent in self.inputData:
@@ -118,7 +119,7 @@ class SimulationDataset:
     print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( self.hitCount / self.totalDecays ) + " hits/event" )
 
 
-  def AddHit( self, ExistingEventID, NewHit, ClusterLimitMM ):
+  def AddHit( self, ExistingEventID, NewHit, ClusterLimitMM, ModuleMap ):
 
     if ClusterLimitMM is None:
       self.inputData[ ExistingEventID ].append( NewHit )
@@ -149,8 +150,20 @@ class SimulationDataset:
           mergedPhi = ( newE*newPhi + oldE*oldPhi ) / mergedE
           mergedR = ( newE*newR + oldE*oldR ) / mergedE
           mergedT = ( newE*NewHit[DATASET_TIME] + oldE*oldHit[DATASET_TIME] ) / mergedE
-          #mergedMOD = oldHit[DATASET_MODULE] + "+" + NewHit[DATASET_MODULE] # TODO update module map to add this
           self.inputData[ ExistingEventID ][ oldHitIndex ] = [ oldHit[DATASET_EVENT], mergedE, mergedT, mergedR, mergedPhi, mergedZ ]
+
+          # Update the module map for the merged hit
+          # For now just a simple majority method: use the module with most energy
+          mergedMOD = None
+          if ( oldE >= newE ):
+            oldHitGlobalPos = ( oldR, oldPhi, oldZ )
+            mergedMOD = ModuleMap[ oldHitGlobalPos ]
+          else:
+            newHitGlobalPos = ( newR, newPhi, newZ )
+            mergedMOD = ModuleMap[ newHitGlobalPos ]
+          mergedHitGlobalPos = ( mergedR, mergedPhi, mergedZ )
+          ModuleMap[ mergedHitGlobalPos ] = mergedMOD
+
           keepHit = False
           break
 
