@@ -27,7 +27,7 @@ class CsvFileReader:
 
   def ReadHit( self ):
     if not self.Open():
-      return None, None
+      return None
 
     splitLine = self.nextLine.split(" ")
 

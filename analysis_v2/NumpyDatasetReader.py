@@ -29,12 +29,6 @@ class NumpyDatasetReader:
     # Finished loading, so clear the input data
     self.inputDataset.inputData = None
 
-    # Do you know a better way to just pick one element from a map?!?
-    self.moduleIDsLength = 0
-    for value in self.inputDataset.moduleMap.values():
-      self.moduleIDsLength = len( value )
-      break
-
 
   def SampleEventsAtTimes( self, Times, RNG=None ):
 

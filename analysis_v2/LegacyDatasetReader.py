@@ -17,12 +17,6 @@ class LegacyDatasetReader:
     for i in range( self.totalDecays ):
       self.unusedEvents.append( i )
 
-    # Do you know a better way to just pick one element from a map?!?
-    self.moduleIDsLength = 0
-    for value in self.inputDataset.moduleMap.values():
-      self.moduleIDsLength = len( value )
-      break
-
 
   def ReferenceOneEvent( self, RNG=None ):
 
