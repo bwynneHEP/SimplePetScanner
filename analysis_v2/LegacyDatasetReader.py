@@ -1,7 +1,7 @@
 # A class for using the data in more-or-less the same format as it is loaded
 
 import numpy as np
-from SimulationDataset import DATASET_ENERGY, DATASET_TIME
+from SimulationDataset import DATASET_EVENT, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z, DATASET_PHOTON_LENGTH
 
 class LegacyDatasetReader:
 
@@ -83,3 +83,6 @@ class LegacyDatasetReader:
 
   def size( self ):
     return self.totalDecays
+
+  def GetModuleIDs( self ):
+    return self.inputDataset.moduleMap

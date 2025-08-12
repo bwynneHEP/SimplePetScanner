@@ -17,6 +17,7 @@ class CsvFileReader:
     self.inputFile = open( InputPath )
     self.nextLine = self.inputFile.readline()
     self.currentEvent = []
+    self.moduleMap = {}
 
   def __del__( self ):
     self.inputFile.close()
@@ -34,12 +35,19 @@ class CsvFileReader:
     moduleIDFields = len( splitLine ) - DATASET_PHOTON_LENGTH
 
     # Assemble hit info
-    eventID = int( splitLine[DATASET_EVENT] )
-    #moduleID = splitLine[DATASET_MODULE]
-    #wholeHit = [ eventID, moduleID ] # Not floats
-    wholeHit = [ eventID ] # Not floats
+    wholeHit = [ int( splitLine[DATASET_EVENT] ) ]
     for i in range( 1 + moduleIDFields, len( splitLine ) ):
       wholeHit.append( float( splitLine[i] ) )
+
+    # Assemble module ID info
+    moduleIDs = []
+    for i in range( 1, moduleIDFields + 1 ):
+      moduleIDs.append( int( splitLine[i] ) )
+
+    # Save module ID map
+    # Note that it's fine to use a tuple () as a dict key, but not a list []
+    hitGlobalPos = ( wholeHit[ DATASET_R ], wholeHit[ DATASET_PHI ], wholeHit[ DATASET_Z ] )
+    self.moduleMap[ hitGlobalPos ] = moduleIDs
 
     self.nextLine = self.inputFile.readline()
     return wholeHit
@@ -59,8 +67,8 @@ class CsvFileReader:
       if newHit[DATASET_EVENT] == self.currentEvent[0][DATASET_EVENT]:
         self.currentEvent.append( newHit )
       else:
-        newEvent = self.currentEvent
-        self.currentEvent = [newHit]
+        newEvent = self.currentEvent # save finished event
+        self.currentEvent = [newHit] # open unfinished event
         return newEvent
 
 
@@ -93,7 +101,7 @@ class SimulationDataset:
 
       # Multiple lines (hits) can go into a single event
       if eventID in self.inputData:
-        self.AddHit( eventID, wholeHit, ClusterLimitMM )
+        self.AddHit( eventID, wholeHit, ClusterLimitMM, inputFile.moduleMap )
       else:
         # Input file should be ordered and thus old event complete
         if currentEvent in self.inputData:
@@ -105,10 +113,13 @@ class SimulationDataset:
         eventCount += 1
         self.hitCount += 1
 
+    # Save the module map info
+    self.moduleMap = inputFile.moduleMap
+
     print( str(eventCount) + " events loaded (" + str( self.totalDecays ) + " simulated) with average " + str( self.hitCount / self.totalDecays ) + " hits/event" )
 
 
-  def AddHit( self, ExistingEventID, NewHit, ClusterLimitMM ):
+  def AddHit( self, ExistingEventID, NewHit, ClusterLimitMM, ModuleMap ):
 
     if ClusterLimitMM is None:
       self.inputData[ ExistingEventID ].append( NewHit )
@@ -139,9 +150,20 @@ class SimulationDataset:
           mergedPhi = ( newE*newPhi + oldE*oldPhi ) / mergedE
           mergedR = ( newE*newR + oldE*oldR ) / mergedE
           mergedT = ( newE*NewHit[DATASET_TIME] + oldE*oldHit[DATASET_TIME] ) / mergedE
-          #mergedMOD = oldHit[DATASET_MODULE] + "+" + NewHit[DATASET_MODULE]
-          #self.inputData[ ExistingEventID ][ oldHitIndex ] = [ oldHit[DATASET_EVENT], mergedMOD, mergedE, mergedT, mergedR, mergedPhi, mergedZ ]
           self.inputData[ ExistingEventID ][ oldHitIndex ] = [ oldHit[DATASET_EVENT], mergedE, mergedT, mergedR, mergedPhi, mergedZ ]
+
+          # Update the module map for the merged hit
+          # For now just a simple majority method: use the module with most energy
+          mergedMOD = None
+          if ( oldE >= newE ):
+            oldHitGlobalPos = ( oldR, oldPhi, oldZ )
+            mergedMOD = ModuleMap[ oldHitGlobalPos ]
+          else:
+            newHitGlobalPos = ( newR, newPhi, newZ )
+            mergedMOD = ModuleMap[ newHitGlobalPos ]
+          mergedHitGlobalPos = ( mergedR, mergedPhi, mergedZ )
+          ModuleMap[ mergedHitGlobalPos ] = mergedMOD
+
           keepHit = False
           break
 

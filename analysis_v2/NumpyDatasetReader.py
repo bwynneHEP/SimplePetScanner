@@ -1,7 +1,7 @@
 # A class for (faster) data manipulation with zero-padded numpy arrays
 
 import numpy as np
-from SimulationDataset import DATASET_ENERGY, DATASET_TIME, DATASET_PHOTON_LENGTH
+from SimulationDataset import DATASET_EVENT, DATASET_ENERGY, DATASET_TIME, DATASET_R, DATASET_PHI, DATASET_Z, DATASET_PHOTON_LENGTH
 
 class NumpyDatasetReader:
 
@@ -77,3 +77,6 @@ class NumpyDatasetReader:
 
   def size( self ):
     return self.totalDecays
+
+  def GetModuleIDs( self ):
+    return self.inputDataset.moduleMap
