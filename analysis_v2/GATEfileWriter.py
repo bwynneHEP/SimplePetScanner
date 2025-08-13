@@ -6,9 +6,9 @@ import math
 # Data structure conversion
 def PhotonToUpROOT( Photon, Suffix, ModuleIDs, BatchCounter, UpROOTdict ):
 
-    UpROOTdict[ "time" + Suffix ][ BatchCounter ] = Photon[ sd.DATASET_TIME ]
+    UpROOTdict[ "time" + Suffix ][ BatchCounter ] = Photon[ sd.DATASET_TIME ] / 1e9 # Apparently GATE uses s but we use ns
     UpROOTdict[ "eventID" + Suffix ][ BatchCounter ] = Photon[ sd.DATASET_EVENT ]
-    UpROOTdict[ "energy" + Suffix ][ BatchCounter ] = Photon[ sd.DATASET_ENERGY ]
+    UpROOTdict[ "energy" + Suffix ][ BatchCounter ] = Photon[ sd.DATASET_ENERGY ] / 1000.0 # Apparently GATE uses MeV but we use keV
     UpROOTdict[ "comptonPhantom" + Suffix ][ BatchCounter ] = 0 # TODO
     
     # These are helpful for debugging but not necessary
