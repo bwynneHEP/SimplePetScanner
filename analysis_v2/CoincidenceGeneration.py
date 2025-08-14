@@ -208,6 +208,9 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
     if len( photonStream ) == 0:
       continue
 
+    # Photon times are generated from the start of the batch: convert to experiment time
+    photonStream[:,DATASET_TIME] += totalTime
+
     # Re-use previous batch photons that were leftover
     if leftoverPhotons is not None and len( leftoverPhotons ) > 0:
       photonStream = np.append( leftoverPhotons, photonStream, axis=0 )
@@ -226,13 +229,18 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
       endWindowTime = thisPhotonTime + CoincidenceWindow
 
       # Truncate when the simulation is finished
-      if endWindowTime + totalTime > SimulationWindow:
+      if endWindowTime > SimulationWindow:
         #print( "Total batches: " + str( batchCounter ) )
         #print( "Yielded " + str( yieldCounter/batchCounter ) + " windows/batch" )
         return
 
       # Check for needing a new batch
-      if endWindowTime > finalPhotonTime:
+      # Original check was
+      #if endWindowTime > finalPhotonTime:
+      # However this fails if the new batch of photons includes entries that
+      # should have fallen into an older window (due to TOF effects)
+      # Adding at least a full window's distance prevents this
+      if endWindowTime + CoincidenceWindow > finalPhotonTime:
         totalTime += ( batchTimePeriod * 1e9 )
         break
 
@@ -260,6 +268,3 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
     # We've broken out of the loop because it's the end of a batch
     # Recycle the leftover photons for the next batch
     leftoverPhotons = photonStream[ startWindowIndex : ]
-    
-    # Offset times for a new batch
-    leftoverPhotons[ :, DATASET_TIME ] -= ( batchTimePeriod * 1e9 )
