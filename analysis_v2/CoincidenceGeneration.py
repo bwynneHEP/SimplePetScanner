@@ -184,7 +184,7 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
 #  coincidence window (or not, if there is an existing window)
 # TODO decide on time units - ns versus s (currently mixed)
 def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWindow, SimulationWindow, MultiWindow, \
-                          EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0 ):
+                          EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0, ContinuousTimes=True ):
 
   # Since each decay is calculated by delta-T, use the last in each channel as an offset
   timeOffsets = np.zeros( len( DecayRates ) )
@@ -209,7 +209,8 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
       continue
 
     # Photon times are generated from the start of the batch: convert to experiment time
-    photonStream[:,DATASET_TIME] += totalTime
+    if ContinuousTimes:
+      photonStream[:,DATASET_TIME] += totalTime
 
     # Re-use previous batch photons that were leftover
     if leftoverPhotons is not None and len( leftoverPhotons ) > 0:
@@ -229,7 +230,11 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
       endWindowTime = thisPhotonTime + CoincidenceWindow
 
       # Truncate when the simulation is finished
-      if endWindowTime > SimulationWindow:
+      if ContinuousTimes and endWindowTime > SimulationWindow:
+        #print( "Total batches: " + str( batchCounter ) )
+        #print( "Yielded " + str( yieldCounter/batchCounter ) + " windows/batch" )
+        return
+      elif not ContinuousTimes and endWindowTime + totalTime > SimulationWindow:
         #print( "Total batches: " + str( batchCounter ) )
         #print( "Yielded " + str( yieldCounter/batchCounter ) + " windows/batch" )
         return
@@ -268,3 +273,7 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
     # We've broken out of the loop because it's the end of a batch
     # Recycle the leftover photons for the next batch
     leftoverPhotons = photonStream[ startWindowIndex : ]
+
+    # Offset times for a new batch
+    if not ContinuousTimes:
+      leftoverPhotons[ :, DATASET_TIME ] -= ( batchTimePeriod * 1e9 )
