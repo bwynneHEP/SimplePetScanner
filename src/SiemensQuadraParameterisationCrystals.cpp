@@ -1,5 +1,4 @@
 #include "SiemensQuadraParameterisationCrystals.h"
-#include "GATEheaderWriter.h"
 
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
@@ -86,9 +85,6 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
 
   // Push geometry ID information to the SD for output
   if ( m_counter ) m_counter->SetGeometryIDs( m_geometryIDs );
-  
-  // Just make a test header for now
-  WriteGATEheader();
 }
 
 void SiemensQuadraParameterisationCrystals::ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const

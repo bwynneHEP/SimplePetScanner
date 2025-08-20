@@ -1,15 +1,15 @@
-#include "GATEheaderWriter.h"
+#include "DetectorGeometryWriter.h"
 
 #include <fstream>
 
-void WriteGATEheader()
+void DetectorGeometryWriter::WriteSTIRheader( std::string const& fileName, DetectorGeometryData const& inputData )
 {
-  std::ofstream outputFile = std::ofstream( "test.GATE.hroot" );
+  std::ofstream outputFile = std::ofstream( fileName.c_str() );
 
   outputFile << "ROOT header := " << std::endl;
   outputFile << std::endl;
   outputFile << "originating system := User_defined_scanner" << std::endl;
-  outputFile << "Number of rings                          := 24" << std::endl;
+  outputFile << "Number of rings                          := " << inputData.nRings << std::endl;
   outputFile << "Number of detectors per ring             := 576" << std::endl;
   outputFile << "Inner ring diameter (cm)                 := 81.02" << std::endl;
   outputFile << "Average depth of interaction (cm)        := 0.25" << std::endl;

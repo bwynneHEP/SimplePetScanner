@@ -12,7 +12,8 @@
 #include "G4PVPlacement.hh"
 #include "G4PVParameterised.hh"
 
-G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, EnergyCounter * Counter, G4double LengthMM, std::string Material )
+G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4LogicalVolume* worldLV, std::string Mode, EnergyCounter * Counter, DetectorGeometryData * DetectorData,
+                                                     G4double LengthMM, std::string Material )
 {
   // Default length
   if ( LengthMM <= 0.0 )
@@ -35,6 +36,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   {
     std::cout << "Siemens Quadra detector variant with nRings: " << nRings << std::endl;
   }
+  DetectorData->nRings = nRings;
 
   // Panels of blocks, contiguous in axial direction
   G4double const panelAxial = LengthForNRings( nRings ) / 2.0; // half-length as always
