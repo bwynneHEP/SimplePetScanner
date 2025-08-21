@@ -6,7 +6,7 @@
 #include "G4LogicalVolume.hh"
 #include "G4VisAttributes.hh"
 
-SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4int nCopies, EnergyCounter * Counter )
+SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4int nCopies, EnergyCounter * Counter, DetectorGeometryData * DetectorData )
 {
   // Precalculating everything avoids a memory leak
   m_positions.reserve( nCopies );
@@ -20,6 +20,7 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
     // 32 rings in the detector
     G4int const crystalsPerRing = 7600;
     G4int const blocksPerRing = 38;
+    DetectorData->blocksPerRing = blocksPerRing;
     G4int const ring = floor( copyNo / crystalsPerRing );
     G4int const nRings = ceil( nCopies / crystalsPerRing );
     G4int const inRing = copyNo % crystalsPerRing;
@@ -36,6 +37,8 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
     // blocks are therefore 10x20
     G4int const crystalsBlockAxial = 10;
     G4int const crystalsBlockTrans = 20;
+    DetectorData->crystalsAxial = crystalsBlockAxial;
+    DetectorData->crystalsTrans = crystalsBlockTrans;
     //G4int const blockTrans = floor( inBlock / crystalsBlockAxial );
     //G4int const blockAxial = inBlock % crystalsBlockAxial;
     G4int const blockAxial = floor( inBlock / crystalsBlockTrans ); // ideally this swap will match GATE
@@ -46,18 +49,17 @@ SiemensQuadraParameterisationCrystals::SiemensQuadraParameterisationCrystals( G4
     G4double const phi = deltaPhi * G4double( block );
 
     // Z position is ring itself
-    G4double const crystalWidth = 3.2 * mm;
+    G4double const crystalWidth = DetectorData->crystalAxialSize;
     G4double const ringWidth = crystalWidth * crystalsBlockAxial;
-    //G4double const z = ( G4double( ring ) - G4double( nRings - 1 ) / 2.0 ) * ( ringWidth + 1*mm ); // +1mm for easy view
     G4double const z = ( G4double( ring ) - G4double( nRings - 1 ) / 2.0 ) * ringWidth; // offset to get it centred
 
     // Adjust Z position for the block axial
-    //G4double const dZ = ( crystalWidth + 1*mm ) * ( blockAxial - ( crystalsBlockAxial / 2.0 ) ); // +1mm for easy view
     G4double const dZ = crystalWidth * ( blockAxial - ( crystalsBlockAxial / 2.0 ) );
 
     // Adjust phi position for block transaxial
-    G4double const r = 41.0 * cm; // 82cm "Detector ring diameter"
-    //G4double const ta = ( crystalWidth + 1*mm ) * ( blockTrans - ( crystalsBlockTrans / 2.0 ) ); // +1mm for easy view
+    G4double r = 41.0 * cm; // "bore diameter of 82 cm (crystal face-to-face)"
+    DetectorData->ringInnerDiameter = r * 2.0;
+    r += ( DetectorData->crystalRadialSize / 2.0 ); // Find centres of the crystals
     G4double const ta = crystalWidth * ( blockTrans - ( crystalsBlockTrans / 2.0 ) );
     G4double const dPhi = atan2( ta, r );
 
