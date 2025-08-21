@@ -4,6 +4,7 @@
 #define SiemensQuadraParameterisationCrystals_h 1
 
 #include "EnergyCounter.h"
+#include "DetectorGeometryWriter.h"
 
 #include "G4VPVParameterisation.hh"
 #include "G4VPhysicalVolume.hh"
@@ -14,7 +15,7 @@
 class SiemensQuadraParameterisationCrystals : public G4VPVParameterisation
 {
   public:
-    SiemensQuadraParameterisationCrystals( G4int nCopies, EnergyCounter * Counter );
+    SiemensQuadraParameterisationCrystals( G4int nCopies, EnergyCounter * Counter, DetectorGeometryData * DetectorData );
     ~SiemensQuadraParameterisationCrystals(){};
 
     void ComputeTransformation( const G4int copyNo, G4VPhysicalVolume* physVol ) const override;

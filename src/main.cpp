@@ -16,22 +16,23 @@
 
 void printHelp()
 {
-  std::cout << "Usage: build/SimplePetScanner [OPTIONS]\n"
-              << "Options:\n"
-              << "  --help                Show help message\n"
-              << "  -n                    Number of events to simulate\n"
-              << "  --gui                 Activate the gui\n"
-              << "  --detector            Select detector geometry and granularity\n"
-              << "  --detectorLengthMM    Set the detector length in mm\n"
-              << "  --detectorMaterial    Set the scintillator material to use\n"
-              << "  --source              Set the radioactive source (tracer or intrinsic detector background)\n"
-              << "  --sourceOffsetMM      Shift the linear source by n mm\n"
-              << "  --phantomLengthMM     Set the phantom length in mm\n"
-              << "  --outputFileName      Override the default output file name\n"
-              << "  --decayOutputFileName Create output containing the radioactive decay info\n"
-              << "  --randomSeed          Override the default random seed\n"
-              << "  --nAluminiumSleeves   Create sensitivity phantom with n sleeves\n"
-              << "See README.md for more complete documentation\n";
+  std::cout << "Usage: build/SimplePetScanner [OPTIONS]" << std::endl
+            << "Options:" << std::endl
+            << "  --help                Show help message" << std::endl
+            << "  -n                    Number of events to simulate" << std::endl
+            << "  --gui                 Activate the gui" << std::endl
+            << "  --detector            Select detector geometry and granularity" << std::endl
+            << "  --detectorLengthMM    Set the detector length in mm" << std::endl
+            << "  --detectorMaterial    Set the scintillator material to use" << std::endl
+            << "  --source              Set the radioactive source (tracer or intrinsic detector background)" << std::endl
+            << "  --sourceOffsetMM      Shift the linear source by n mm" << std::endl
+            << "  --phantomLengthMM     Set the phantom length in mm" << std::endl
+            << "  --outputFileName      Override the default output file name" << std::endl
+            << "  --decayOutputFileName Create output containing the radioactive decay info" << std::endl
+            << "  --randomSeed          Override the default random seed" << std::endl
+            << "  --nAluminiumSleeves   Create sensitivity phantom with n sleeves" << std::endl
+            << "  --STIRheader          Filename for a .hroot header file to use with STIR" << std::endl
+            << "See README.md for more complete documentation" << std::endl;
 } 
 
 int main( int argc, char* argv[] )
@@ -45,6 +46,7 @@ int main( int argc, char* argv[] )
   std::string sourceName = "";
   std::string outputFileName = "hits.csv";
   std::string decayOutputFileName = "";
+  std::string stirHeader = "";
   G4double detectorLength = -1.0;
   G4double phantomLength = -1.0;
   G4double sourceOffsetMM = 0.0;
@@ -184,6 +186,11 @@ int main( int argc, char* argv[] )
         return 1;
       }
     }
+    else if ( argument == "--STIRheader" )
+    {
+      if ( nextArgument.size() ) stirHeader = nextArgument;
+      else stirHeader = "STIRheader.hroot";
+    }
     else
     {
       std::cerr << "Unrecognised argument: " << argument << std::endl;
@@ -213,7 +220,7 @@ int main( int argc, char* argv[] )
   runManager->SetUserInitialization( actions );
 
   // Set up detector
-  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, decayOutputFileName, detectorMaterial, nAluminiumSleeves, sourceOffsetMM );
+  DetectorConstruction * detector = new DetectorConstruction( decayTimeFinder, detectorName, detectorLength, phantomLength, outputFileName, detectorMaterial, nAluminiumSleeves, sourceOffsetMM );
   runManager->SetUserInitialization( detector );
 
   // Set up the macros
@@ -222,6 +229,12 @@ int main( int argc, char* argv[] )
   UImanager->ApplyCommand( "/run/initialize" );
   UImanager->ApplyCommand( "/control/execute run.mac" );
   UImanager->ApplyCommand( "/run/beamOn " + std::to_string( nEvents ) ); // even if it's zero, useful to initialise physics
+  
+  // Save geometry data (has to be done after init or not computed)
+  if ( stirHeader != "" )
+  {
+    detector->MakeHeaderFile( stirHeader );
+  }
 
   // Set up GUI
   G4VisManager* visManager = nullptr;
