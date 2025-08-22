@@ -20,9 +20,9 @@ void DetectorGeometryWriter::WriteSTIRheader( std::string const& fileName, Detec
   outputFile << "View offset (degrees)                    := -5.021" << std::endl; // What does this mean?
   outputFile << "Maximum number of non-arc-corrected bins := 381" << std::endl; // What does this mean?
   outputFile << "Default number of arc-corrected bins     := 331" << std::endl; // What does this mean?
-  outputFile << "Number of TOF time bins :=275" << std::endl; // Arbitrary
-  outputFile << "Size of timing bin (ps) :=17.8" << std::endl; // Arbitrary
-  outputFile << "Timing resolution (ps) :=75" << std::endl; // Arbitrary
+  outputFile << ";Number of TOF time bins :=275" << std::endl; // Undefined, comment out (causes STIR issue also)
+  outputFile << ";Size of timing bin (ps) :=17.8" << std::endl; // ditto
+  outputFile << ";Timing resolution (ps) :=75" << std::endl; // ditto
   outputFile << std::endl;
   outputFile << "GATE scanner type := GATE_Cylindrical_PET" << std::endl;
   outputFile << "GATE_Cylindrical_PET Parameters :=" << std::endl;
