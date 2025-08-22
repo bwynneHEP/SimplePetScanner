@@ -11,8 +11,8 @@ void DetectorGeometryWriter::WriteSTIRheader( std::string const& fileName, Detec
   outputFile << "ROOT header := " << std::endl;
   outputFile << std::endl;
   outputFile << "originating system := User_defined_scanner" << std::endl;
-  outputFile << "Number of rings                          := " << inputData.nRings << std::endl;
-  outputFile << "Number of detectors per ring             := " << inputData.crystalsTrans * inputData.crystalsAxial * inputData.blocksPerRing << std::endl;
+  outputFile << "Number of rings                          := " << inputData.nRings * inputData.crystalsAxial << std::endl; // Apparently each axial crystal is a ring
+  outputFile << "Number of detectors per ring             := " << inputData.crystalsTrans * inputData.blocksPerRing << std::endl; // Removed axial crystals
   outputFile << "Inner ring diameter (cm)                 := " << inputData.ringInnerDiameter / cm << std::endl;
   outputFile << "Average depth of interaction (cm)        := 0.25" << std::endl; // Could calculate this value?
   outputFile << "Distance between rings (cm)              := " << inputData.ringGap / cm << std::endl;
