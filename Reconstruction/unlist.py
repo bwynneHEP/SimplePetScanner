@@ -132,3 +132,14 @@ os.system( commandString )
 # Can't we just view the bloody sinogram?
 #https://github.com/UCL/STIR-GATE-Connection/blob/master/DataCorrectionsComputation/ComputePoissonDataCorrections.sh
 #https://github.com/UCL/STIR-GATE-Connection/blob/master/ExampleReconstruction/ExampleReconstruction.sh
+
+# Maybe also look at
+#https://github.com/UCL/STIR/blob/master/recon_test_pack/run_root_GATE.sh
+
+# I think the axial offset is the problem - was mentioned at bottom of this
+#https://github.com/UCL/STIR/blob/master/examples/ROOT_files/ROOT_STIR_consistency/README.md
+#stir_z = (L-d)/2 + gate_z
+# where L is the scanner z-length (157.16 mm) and d = 6.54mm is the distance between rings . For the data currently used in this test, (L-d)/2 = 75.31mm. There are no translations in x or y.
+# note I think this also means that "d = 6.54mm" is not a gap, but just crystal spacing (because I think each ring is a single crystal in stir language)
+# ACTUALLY NO it's coming from the hs file
+# matrix size [2]

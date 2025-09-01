@@ -12,6 +12,20 @@ def HSlineSwap( line, HROOTdictionary ):
   if "!matrix size [3]" in line:
     numberOfViews = int( HROOTdictionary["Number of detectors per ring"] ) / 2
     return "!matrix size [3] := " + str( int( numberOfViews ) ) + "\n"
+  
+  # HACK - try to understand how to define correctly
+  if "!matrix size [4]" in line:
+    return "!matrix size [4] := 1\n"
+  if "!matrix size [2]" in line:
+    #return "!matrix size [2] := { 1001,1001,1001,1001,1001,1001,1001,1001,1001,1001,1001 }\n"
+    #2001 -> 4954170 stored, in sinograms 1436:1847 # increase ring difference and events up: 12423700 (in same sinos)
+    #1001 -> 645519 stored, in sinograms 936:1000
+    #501 -> 0 stored
+    return "!matrix size [2] := { 2001 }\n"
+  if "minimum ring difference per segment" in line:
+    return "minimum ring difference per segment := { -320 }\n" #-60
+  if "maximum ring difference per segment" in line:
+    return "maximum ring difference per segment := { 320 }\n" #60
 
   # Things to copy directly
   justVals = ["Number of rings", "Number of detectors per ring", "Inner ring diameter (cm)", "Average depth of interaction (cm)",
