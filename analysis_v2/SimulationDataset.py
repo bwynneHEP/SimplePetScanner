@@ -226,7 +226,7 @@ def BackToBackEvent( Event, DetectorRadius, ZMin=0.0, ZMax=0.0 ):
 
 
 # Launch the Geant4 simulation
-def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed=1234, Path="", SourceOffset=0, NAluminiumSleeves=0 ):
+def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed=1234, Path="", SourceOffset=0, NAluminiumSleeves=0, STIRheader="" ):
 
   # Allow creation at arbitrary path
   outputFileName = ""
@@ -273,6 +273,8 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
     command += " --sourceOffsetMM " + str(SourceOffset)
     if DetectorMaterial != "":
       command += " --detectorMaterial " + DetectorMaterial
+    if STIRheader != "":
+      command += " --STIRheader " + STIRheader
     print("Running command = ", command)
     process = subprocess.Popen( command, shell=True )
     process.wait()
@@ -286,9 +288,9 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
 
 
 # Create a dataset class from new or existing simulated input
-def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None, SourceOffset=0, NAluminiumSleeves=0, UseNumpy=False ):
+def CreateDataset( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, EnergyMin, EnergyMax, DetectorMaterial, Seed=1234, Path="", ClusterLimitMM=None, SourceOffset=0, NAluminiumSleeves=0, UseNumpy=False, STIRheader="" ):
 
-  outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path, SourceOffset, NAluminiumSleeves )
+  outputFileName = GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDecays, DetectorMaterial, Seed, Path, SourceOffset, NAluminiumSleeves, STIRheader )
   if outputFileName == "":
       return None
 

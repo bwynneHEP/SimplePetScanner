@@ -15,9 +15,9 @@ void DetectorGeometryWriter::WriteSTIRheader( std::string const& fileName, Detec
   outputFile << "Number of detectors per ring             := " << inputData.crystalsTrans * inputData.blocksPerRing << std::endl; // Removed axial crystals
   outputFile << "Inner ring diameter (cm)                 := " << inputData.ringInnerDiameter / cm << std::endl;
   outputFile << "Average depth of interaction (cm)        := 0.25" << std::endl; // Could calculate this value?
-  outputFile << "Distance between rings (cm)              := " << inputData.ringGap / cm << std::endl;
+  outputFile << "Distance between rings (cm)              := " << inputData.ringGap / cm << std::endl; // Basically just distance between adjacent crystal centres in z I think
   outputFile << "Default bin size (cm)                    := " << inputData.crystalTransSize / cm << std::endl;
-  outputFile << "View offset (degrees)                    := -5.021" << std::endl; // What does this mean?
+  outputFile << "View offset (degrees)                    := 0.0" << std::endl; // See STIR-UsersGuide.pdf, it's a fiddle-factor between GATE and STIR
   outputFile << "Maximum number of non-arc-corrected bins := 381" << std::endl; // What does this mean?
   outputFile << "Default number of arc-corrected bins     := 331" << std::endl; // What does this mean?
   outputFile << ";Number of TOF time bins :=275" << std::endl; // Undefined, comment out (causes STIR issue also)
