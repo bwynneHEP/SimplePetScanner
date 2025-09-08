@@ -1,6 +1,8 @@
 from SimulationDataset import *
 
 import numpy as np
+
+import matplotlib.pyplot as mpl
 #import time
 
 
@@ -166,7 +168,6 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
 
   #end = time.time_ns()
   #print( "Create photon stream: " + str( end-start ) + "ns" )
-
   return photons
 
 
@@ -185,7 +186,6 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
 # TODO decide on time units - ns versus s (currently mixed)
 def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWindow, SimulationWindow, MultiWindow, \
                           EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0, ContinuousTimes=True ):
-
   # Since each decay is calculated by delta-T, use the last in each channel as an offset
   timeOffsets = np.zeros( len( DecayRates ) )
 
@@ -196,6 +196,7 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
   # Loop until end of the simulation
   totalTime = 0.0
   leftoverPhotons = None
+
   while totalTime < SimulationWindow:
 
     # Use the previous methods to create the photon timeline
@@ -228,7 +229,6 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
       thisPhoton = photonStream[startWindowIndex]
       thisPhotonTime = thisPhoton[DATASET_TIME]
       endWindowTime = thisPhotonTime + CoincidenceWindow
-
       # Truncate when the simulation is finished
       if ContinuousTimes and endWindowTime > SimulationWindow:
         #print( "Total batches: " + str( batchCounter ) )
@@ -245,23 +245,23 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
       # However this fails if the new batch of photons includes entries that
       # should have fallen into an older window (due to TOF effects)
       # Adding at least a full window's distance prevents this
-      if endWindowTime + CoincidenceWindow > finalPhotonTime:
+      if endWindowTime + CoincidenceWindow > finalPhotonTime: 
         totalTime += ( batchTimePeriod * 1e9 )
         break
+
 
       # Create the window data by examining subsequent photons
       endWindowIndex = -1
       for nextPhotonIndex in range( startWindowIndex + 1, len( photonStream ) ):
-
+        
         nextPhotonTime = photonStream[ nextPhotonIndex, DATASET_TIME ]
-
+      
         # Check if photon is within the window
         if nextPhotonTime >= endWindowTime:
           endWindowIndex = nextPhotonIndex
           break
      
       #yieldCounter += 1
-
       yield photonStream[ startWindowIndex : endWindowIndex ]
 
       # Choose whether to allow multiple concurrent windows
@@ -277,3 +277,176 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
     # Offset times for a new batch
     if not ContinuousTimes:
       leftoverPhotons[ :, DATASET_TIME ] -= ( batchTimePeriod * 1e9 )
+  
+def GenerateDelayedCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWindow, SimulationWindow, MultiWindow, EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0, ContinuousTimes=True, Delay=50 ):
+  # print("DecayRates = ", DecayRates)
+  # Since each decay is calculated by delta-T, use the last in each channel as an offset
+  timeOffsets = np.zeros( len( DecayRates ) )
+
+  # profiling
+  #yieldCounter = 0
+  #batchCounter = 0
+
+  # Loop until end of the simulation
+  totalTime = 0.0
+  leftoverPhotons = None
+  delWinStarts = []
+  photonTimesToPlot = []
+
+  while totalTime < SimulationWindow:
+
+    # Use the previous methods to create the photon timeline
+    timeSeries, batchTimePeriod = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
+    # print("generated timeSeries = ", timeSeries)
+    # print("generated batchTimePeriod = ", batchTimePeriod)
+    photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
+    # print("generated photon stream = ", photonStream)
+
+    delayedWindows = {}
+    # delay = 1.5e8 #ns
+
+    #batchCounter += 1
+
+    # Potentially this could just be an empty batch
+    if len( photonStream ) == 0:
+      continue
+
+    # Photon times are generated from the start of the batch: convert to experiment time
+    if ContinuousTimes:
+      photonStream[:,DATASET_TIME] += totalTime
+
+    # Re-use previous batch photons that were leftover
+    if leftoverPhotons is not None and len( leftoverPhotons ) > 0:
+      photonStream = np.append( leftoverPhotons, photonStream, axis=0 )
+      photonStream = photonStream[ photonStream[:,DATASET_TIME].argsort() ] # might be some overlap, need to sort
+
+    # Find the last photon time, to make sure we don't overrun
+    finalPhotonTime = photonStream[ -1, DATASET_TIME ]
+
+    # Loop over the photons, opening coincidence windows
+    startWindowIndex = 0
+    # print("Going into the loop to create coincidences")
+    itemToDelete = None
+    while startWindowIndex < len( photonStream ):
+
+      # Start the window with this photon
+      thisPhoton = photonStream[startWindowIndex]
+      thisPhotonTime = thisPhoton[DATASET_TIME]
+      endWindowTime = thisPhotonTime + CoincidenceWindow
+      # print("photon starting the window: ", thisPhoton, " its time = ", thisPhotonTime, " time of closing the window = ", endWindowTime, " delayed window = (", thisPhotonTime+Delay, ", ", thisPhotonTime+Delay+CoincidenceWindow, ")")
+      #open the delayed coincidence window with a delay of 50ns - add this to dict
+      delayedWindows[(thisPhotonTime+Delay, thisPhotonTime+Delay+CoincidenceWindow)] = [-1, -1]
+      delWinStarts.append(thisPhotonTime+Delay)
+      # print("Current status of the delayed coinc window dict = ", delayedWindows)
+      # Truncate when the simulation is finished
+      if ContinuousTimes and endWindowTime > SimulationWindow:
+        # print("start times = ", delWinStarts)
+        # endtime = 0.
+        # fig, ax = mpl.subplots()
+        # for st in delWinStarts:
+          # ax.axvspan(st, st+CoincidenceWindow, color="skyblue", alpha=0.3)
+          # print("start time = ", st )
+          # if st < endtime:
+            # print("Current start time is lower than previous end time!!")
+
+          # endtime = st+CoincidenceWindow
+          # print("end time = ", endtime)
+        # dummyY = [1]*len(photonTimesToPlot)
+        # ax.plot(photonTimesToPlot, dummyY, marker='o', linestyle='None')
+        # ax.set_yticks(np.arange(1, 1))
+        # ax.set_xlabel("Time [ns]")
+        # dummyy = [0]*len(delWinStarts)
+        # mpl.plot(delWinStarts, dummyy, marker='o')
+        # mpl.show()
+        # mpl.savefig("delayedcoincidences.pdf")
+        # print("The time of closing window is above the simulation window so does not fit, end yielding photons")
+        #print( "Total batches: " + str( batchCounter ) )
+        #print( "Yielded " + str( yieldCounter/batchCounter ) + " windows/batch" )
+        return
+      elif not ContinuousTimes and endWindowTime + totalTime > SimulationWindow:
+        #print( "Total batches: " + str( batchCounter ) )
+        #print( "Yielded " + str( yieldCounter/batchCounter ) + " windows/batch" )
+        return
+
+      # Check for needing a new batch
+      # Original check was
+      #if endWindowTime > finalPhotonTime:
+      # However this fails if the new batch of photons includes entries that
+      # should have fallen into an older window (due to TOF effects)
+      # Adding at least a full window's distance prevents this
+      if endWindowTime + CoincidenceWindow > finalPhotonTime: 
+        totalTime += ( batchTimePeriod * 1e9 )
+        break
+
+
+      # Create the window data by examining subsequent photons
+      endWindowIndex = -1
+      for nextPhotonIndex in range( startWindowIndex + 1, len( photonStream ) ):
+        
+        # print("Creating the window data for this photon")
+        # print("nextPhotonIndex = ", nextPhotonIndex)
+
+        nextPhotonTime = photonStream[ nextPhotonIndex, DATASET_TIME ]
+        # print("nextPhotonTime = ", nextPhotonTime)
+        # canOpenDelayedWindow = False
+        # winStartTmp = 0.
+        # winEndTmp = 0.
+        if itemToDelete != None and itemToDelete in delayedWindows.keys() : 
+          del delayedWindows[itemToDelete]
+        for key in delayedWindows.keys():
+          if nextPhotonTime > key[0] and nextPhotonTime < key[1]:
+            if delayedWindows[key][0] == -1:
+              delayedWindows[key][0] = nextPhotonIndex
+            delayedWindows[key][1] = nextPhotonIndex
+            photonTimesToPlot.append(nextPhotonTime)
+          elif nextPhotonTime >= key[1] and delayedWindows[key][0] != -1:
+            # print("------------------------------------------------------")
+            # print("Delayed window = ", key)
+            # print("Photon indices = ", delayedWindows[key])
+            # print("yielded delayed photon stream: ", photonStream[ delayedWindows[key][0] : delayedWindows[key][1]+1 ])
+            streamToYield = photonStream[ delayedWindows[key][0] : delayedWindows[key][1]+1 ]
+            itemToDelete = key
+            yield streamToYield
+   
+        # Check if photon is within the window
+        if nextPhotonTime >= endWindowTime:
+          # print("Next photon is outside the window and will be the first one to open a new window")
+          endWindowIndex = nextPhotonIndex
+          break
+     
+      #yieldCounter += 1
+      # print("yielded photon stream: ", photonStream[ startWindowIndex : endWindowIndex ])
+      # yield photonStream[ startWindowIndex : endWindowIndex ]
+
+      # Choose whether to allow multiple concurrent windows
+      if MultiWindow:
+        startWindowIndex += 1
+      else:
+        startWindowIndex = endWindowIndex
+
+    # We've broken out of the loop because it's the end of a batch
+    # Recycle the leftover photons for the next batch
+    leftoverPhotons = photonStream[ startWindowIndex : ]
+
+    # Offset times for a new batch
+    if not ContinuousTimes:
+      leftoverPhotons[ :, DATASET_TIME ] -= ( batchTimePeriod * 1e9 )
+
+  # print("start times = ", delWinStarts)
+  # endtime = 0.
+  # fig, ax = mpl.subplots()
+  # for st in delWinStarts:
+  #   ax.axvspan(st, st+CoincidenceWindow, color="skyblue", alpha=0.3)
+  #   print("start time = ", st )
+  #   if st < endtime:
+  #     print("Current start time is lower than previous end time!!")
+
+  #   endtime = st+CoincidenceWindow
+  #   print("end time = ", endtime)
+  # dummyY = [1]*len(photonTimesToPlot)
+  # ax.plot(photonTimesToPlot, dummyY, marker='o', linestyle='None')
+  # ax.set_yticks(np.arange(1, 1))
+  # ax.set_xlabel("Time [ns]")
+  # mpl.show()
+  # mpl.savefig("delayedcoincidences.pdf")
+  

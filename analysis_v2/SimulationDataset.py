@@ -83,6 +83,7 @@ class SimulationDataset:
     self.eventHitsMax = 0
     self.RNG = RNG
     if self.RNG == None:
+      # print("SimulationDataset.__init__ creating new RNG")
       self.RNG = np.random.default_rng()
 
     if TotalDecays < 1:
