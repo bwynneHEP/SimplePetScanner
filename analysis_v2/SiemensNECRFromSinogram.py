@@ -309,99 +309,104 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
 
     return RTOT, Rsr, Rt, Rr, Rs, NECR
 
-detectorMaterial = "LSO"
-nevents = 1000000
-Emin = 435.0
-Emax = 585.0
-detectorLength = 1024
-phantomLength = 700
-simulationWindow = 1E7
-coincidenceWindow = 4.7
-startingActivity = 1100E6 #Bq
-PairMode = "TakeAllGoods"
+def main() :
 
-NECRs = []
-RTOTs = []
-Rss = []
-Rsrs = []
-Rts = []
-Rrs = []
-activities = []
-phantomRadius = 20.3 / 2.0
-phantomVolume = phantomRadius * phantomRadius * math.pi * phantomLength / 10.0
+    detectorMaterial = "LSO"
+    nevents = 1000000
+    Emin = 435.0
+    Emax = 585.0
+    detectorLength = 1024
+    phantomLength = 700
+    simulationWindow = 1E7
+    coincidenceWindow = 4.7
+    startingActivity = 1100E6 #Bq
+    PairMode = "TakeAllGoods"
 
-activityList, dataList, moduleIDsTable = CountRatePerformanceData(detectorMaterial, nevents, Emin, Emax, detectorLength, phantomLength)
+    NECRs = []
+    RTOTs = []
+    Rss = []
+    Rsrs = []
+    Rts = []
+    Rrs = []
+    activities = []
+    phantomRadius = 20.3 / 2.0
+    phantomVolume = phantomRadius * phantomRadius * math.pi * phantomLength / 10.0
 
-modIDs = moduleIDsTable.values()
-#needed for minSectorDifference calculation
-sectorMax = max({sector[1] for sector in modIDs})
-nsectors = sectorMax + 1 
+    activityList, dataList, moduleIDsTable = CountRatePerformanceData(detectorMaterial, nevents, Emin, Emax, detectorLength, phantomLength)
 
-for t in range(0, 700, 20):
-    tsec = 60*t
-    activity = pc.TracerActivityAtTime( startingActivity, tsec, "F18" )
-    activityList[0] = activity
+    modIDs = moduleIDsTable.values()
+    #needed for minSectorDifference calculation
+    sectorMax = max({sector[1] for sector in modIDs})
+    nsectors = sectorMax + 1 
 
-    generator = cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, MultiWindow=False, EnergyResolution=0.0, EnergyMin=Emin, EnergyMax=Emax, TimeResolution=0.0 )
+    for t in range(0, 700, 20):
+        tsec = 60*t
+        activity = pc.TracerActivityAtTime( startingActivity, tsec, "F18" )
+        activityList[0] = activity
 
-    RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance( generator, simulationWindow, PairMode, moduleIDsTable, nsectors)
+        generator = cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, MultiWindow=False, EnergyResolution=0.0, EnergyMin=Emin, EnergyMax=Emax, TimeResolution=0.0 )
 
-    NECRs.append(NECRAtTime*cps2Mcps)
-    RTOTs.append(RTOTatTime*cps2Mcps)
-    Rss.append(RsAtTime*cps2Mcps)
-    Rsrs.append(RsrAtTime*cps2Mcps)
-    Rts.append(RtAtTime*cps2Mcps)
-    Rrs.append(RrAtTime*cps2Mcps)
-    activities.append(activity*Bq2kBq/phantomVolume)
+        RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance( generator, simulationWindow, PairMode, moduleIDsTable, nsectors)
 
-#Rates plot
-mpl.plot(activities, NECRs, marker='.', linestyle='-', color='red', label='NECR')
-mpl.plot(activities, RTOTs, marker='.', linestyle=':', color='black', label='Prompts')
-mpl.plot(activities, Rss, marker='.', linestyle='-', color='blue', label='Scatter')
-mpl.plot(activities, Rrs, marker='.', linestyle='--', color='black', label='Randoms')
-mpl.plot(activities, Rts, marker='.', linestyle='-', color='black', label='Trues')
-mpl.xlabel( "Activity concentration [kBq/ml]")
-mpl.ylabel( "Rate [Mcps]")
-mpl.legend(loc='upper left')
-mpl.savefig("Rates-Siemens.pdf")
+        NECRs.append(NECRAtTime*cps2Mcps)
+        RTOTs.append(RTOTatTime*cps2Mcps)
+        Rss.append(RsAtTime*cps2Mcps)
+        Rsrs.append(RsrAtTime*cps2Mcps)
+        Rts.append(RtAtTime*cps2Mcps)
+        Rrs.append(RrAtTime*cps2Mcps)
+        activities.append(activity*Bq2kBq/phantomVolume)
 
-# Save the numerical results to a csv files
-# np.set_printoptions(precision = 3, suppress = True)
-# results=np.vstack((NECRs, Rts, Rss, Rrs, activities))
-# print("results = ")
-# print(results)
-# np.savetxt("results.csv", results.T, '%1.3f', delimiter=",")
+    #Rates plot
+    mpl.plot(activities, NECRs, marker='.', linestyle='-', color='red', label='NECR')
+    mpl.plot(activities, RTOTs, marker='.', linestyle=':', color='black', label='Prompts')
+    mpl.plot(activities, Rss, marker='.', linestyle='-', color='blue', label='Scatter')
+    mpl.plot(activities, Rrs, marker='.', linestyle='--', color='black', label='Randoms')
+    mpl.plot(activities, Rts, marker='.', linestyle='-', color='black', label='Trues')
+    mpl.xlabel( "Activity concentration [kBq/ml]")
+    mpl.ylabel( "Rate [Mcps]")
+    mpl.legend(loc='upper left')
+    mpl.savefig("Rates-Siemens.pdf")
 
-mpl.clf()
-#Zoomed in rates plot for comparison with siemens paper results
-mpl.plot(activities, NECRs, marker='.', linestyle='-', color='red', label='NECR')
-mpl.plot(activities, RTOTs, marker='.', linestyle=':', color='black', label='Prompts')
-mpl.plot(activities, Rss, marker='.', linestyle='-', color='blue', label='Scatter')
-mpl.plot(activities, Rrs, marker='.', linestyle='--', color='black', label='Randoms')
-mpl.plot(activities, Rts, marker='.', linestyle='-', color='black', label='Trues')
-mpl.xlabel( "Activity concentration [kBq/ml]")
-mpl.ylabel( "Rate [Mcps]")
-mpl.legend(loc='upper right')
-mpl.axis([0, 40, 0, 10])
-mpl.savefig("Rates-Siemens-zoom.pdf")
+    # Save the numerical results to a csv files
+    # np.set_printoptions(precision = 3, suppress = True)
+    # results=np.vstack((NECRs, Rts, Rss, Rrs, activities))
+    # print("results = ")
+    # print(results)
+    # np.savetxt("results.csv", results.T, '%1.3f', delimiter=",")
 
-mpl.clf()
+    mpl.clf()
+    #Zoomed in rates plot for comparison with siemens paper results
+    mpl.plot(activities, NECRs, marker='.', linestyle='-', color='red', label='NECR')
+    mpl.plot(activities, RTOTs, marker='.', linestyle=':', color='black', label='Prompts')
+    mpl.plot(activities, Rss, marker='.', linestyle='-', color='blue', label='Scatter')
+    mpl.plot(activities, Rrs, marker='.', linestyle='--', color='black', label='Randoms')
+    mpl.plot(activities, Rts, marker='.', linestyle='-', color='black', label='Trues')
+    mpl.xlabel( "Activity concentration [kBq/ml]")
+    mpl.ylabel( "Rate [Mcps]")
+    mpl.legend(loc='upper right')
+    mpl.axis([0, 40, 0, 10])
+    mpl.savefig("Rates-Siemens-zoom.pdf")
 
-#Calculate the scatter fraction for different activities and plot results
-activities = np.array(activities)
-Rsrs = np.array(Rsrs)
-Rrs = np.array(Rrs)
-RTOTs = np.array(RTOTs)
-num = np.subtract(Rsrs, Rrs)
-denom = np.subtract(RTOTs, Rrs)
-SF = np.divide(num, denom)*100.
+    mpl.clf()
 
-mpl.plot(activities, SF, marker='.', linestyle='-', color='blue')
-mpl.axis([0, 50, 0, 100])
-mpl.xlabel( "Activity concentration [kBq/ml]")
-mpl.ylabel( "Scatter Fraction [%]")
-mpl.savefig("Scatter-fraction-Siemens.pdf")
+    #Calculate the scatter fraction for different activities and plot results
+    activities = np.array(activities)
+    Rsrs = np.array(Rsrs)
+    Rrs = np.array(Rrs)
+    RTOTs = np.array(RTOTs)
+    num = np.subtract(Rsrs, Rrs)
+    denom = np.subtract(RTOTs, Rrs)
+    SF = np.divide(num, denom)*100.
 
-#Scatter fraction measured as a mean of the scatter fractions correspodning to the last 3 measurements
-SFval = np.mean(SF[-3:])
-print("SFval = ", SFval)
+    mpl.plot(activities, SF, marker='.', linestyle='-', color='blue')
+    mpl.axis([0, 50, 0, 100])
+    mpl.xlabel( "Activity concentration [kBq/ml]")
+    mpl.ylabel( "Scatter Fraction [%]")
+    mpl.savefig("Scatter-fraction-Siemens.pdf")
+
+    #Scatter fraction measured as a mean of the scatter fractions correspodning to the last 3 measurements
+    SFval = np.mean(SF[-3:])
+    print("SFval = ", SFval)
+
+if __name__ == "__main__" :
+    main()
