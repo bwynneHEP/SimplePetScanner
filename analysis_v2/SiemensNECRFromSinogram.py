@@ -89,7 +89,7 @@ def CalcEntriesInPartialPixel(projectionShifted, windowEdge, slope, offset):
     p2y = p2x*slope + offset
 
     # calculate the number of entries in the partial bin as an area of the trapezoid
-    return ((p1y+p2y)/2.0) * np.absolute(p2x - p1x)
+    return ((p1y+p2y)/2.0) * np.absolute(p2x - p1x)/binWidth
 
 def CalcCSR(projectionShifted): 
     #get linear functions needed for interpolation points CLinter and CRinter
