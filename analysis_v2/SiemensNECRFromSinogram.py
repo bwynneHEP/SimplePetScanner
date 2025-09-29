@@ -89,7 +89,7 @@ def CalcEntriesInPartialPixel(projectionShifted, windowEdge, slope, offset):
     p2y = p2x*slope + offset
 
     # calculate the number of entries in the partial bin as an area of the trapezoid
-    return ((p1y+p2y)/2.0) * np.absolute(p2x - p1x)
+    return ((p1y+p2y)/2.0) * np.absolute(p2x - p1x)/binWidth
 
 def CalcCSR(projectionShifted): 
     #get linear functions needed for interpolation points CLinter and CRinter
@@ -193,7 +193,7 @@ def SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile, sinogramRandoms,
 
  
 
-def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsectors):
+def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsectors, activity):
 
     nbinsx = 250
     nbinsy = 380
@@ -244,15 +244,16 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
     # canv.SaveAs(pdfName)
 
     #Zero pixels further than 12 cm from the scanner's center
-    for b in range (1, nbinsx+1) :
+    #Take into account the underflow and overflow bins
+    for b in range (0, nbinsx+2) :
         if profile.GetBinContent(b) > 120 or profile.GetBinContent(b) < -120 :
-            for by in range(0, nbinsy+1):
+            for by in range(0, nbinsy+2):
                 sinogram.SetBinContent(b, by, 0.)
     
 
-    for b in range (1, nbinsx+1) :    
+    for b in range (0, nbinsx+2) :    
         if profileRandoms.GetBinContent(b) > 120 or profileRandoms.GetBinContent(b) < -120 :
-            for by in range(0, nbinsy+1):
+            for by in range(0, nbinsy+2):
                 sinogramRandoms.SetBinContent(b, by, 0.)
 
     # canv.Clear()
@@ -260,16 +261,16 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
     # pdfName = "sinogram_randoms_" + str(activity) + ".pdf"
     # canv.SaveAs(pdfName)
 
-    #zero the overflow bin
-    for ybin in range(1, sinogram.GetNbinsY()+1):
+    #zero the overflow bin before shifting the sinogram
+    for ybin in range(0, sinogram.GetNbinsY()+2):
         sinogram.SetBinContent(sinogram.GetNbinsX()+1, ybin, 0)
 
     #find the max pixel in radial distance for each projection angle bin and shift the sinogram 
-    for ybin in range(1, sinogram.GetNbinsY()+1):
-        shift = sinogram.ProjectionX("proj", ybin, ybin+1, "").GetMaximumBin() - (sinogram.GetNbinsX()/2)
+    for ybin in range(0, sinogram.GetNbinsY()+2):
+        shift = sinogram.ProjectionX("proj", ybin, ybin+1, "").GetMaximumBin() - ((sinogram.GetNbinsX()+2)/2)
         shift = int(shift)
         # print("shift = ", shift)
-        for xbin in range(1, sinogram.GetNbinsX()+1):
+        for xbin in range(0, sinogram.GetNbinsX()+2):
             sinogramShifted.SetBinContent(xbin, ybin, sinogram.GetBinContent(xbin+shift, ybin))
             
     # canv.Clear()
@@ -278,7 +279,7 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
     # canv.SaveAs(pdfName)
 
     # canv.Clear()
-    projectionShifted = sinogramShifted.ProjectionX()
+    # projectionShifted = sinogramShifted.ProjectionX()
     # projectionShifted.Draw("hist")
     # pdfName = "projection_shifted_" + str(activity) + ".pdf"
     # canv.SaveAs(pdfName)
@@ -346,7 +347,7 @@ def main() :
 
         generator = cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, MultiWindow=False, EnergyResolution=0.0, EnergyMin=Emin, EnergyMax=Emax, TimeResolution=0.0 )
 
-        RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance( generator, simulationWindow, PairMode, moduleIDsTable, nsectors)
+        RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance( generator, simulationWindow, PairMode, moduleIDsTable, nsectors, activity)
 
         NECRs.append(NECRAtTime*cps2Mcps)
         RTOTs.append(RTOTatTime*cps2Mcps)
