@@ -39,12 +39,12 @@ class LegacyDatasetReader:
       return []
 
 
-  def SampleOneEvent( self, EnergyResolution=0.0, TimeResolution=0.0 ):
+  def SampleOneEvent( self, EnergyResolution=0.0, TimeResolution=0.0, RNG=None ):
 
     # NOTE: older-style method for retrieving events one-at-a-time with resolution effects applied
 
     modifiedEvent = []
-    for photon in self.ReferenceOneEvent():
+    for photon in self.ReferenceOneEvent(RNG):
 
       # Apply resolution effects to each measured photon
       newPhoton = [ value for value in photon ]
@@ -70,8 +70,9 @@ class LegacyDatasetReader:
     result = []
 
     for time in Times:
+      # print("One event")
       for photon in self.ReferenceOneEvent( RNG ):
-
+        # print("photon in this event ")
         newPhoton = [ value for value in photon ]
         newPhoton[DATASET_TIME] += ( time * 1e9 ) # convert to ns
 
