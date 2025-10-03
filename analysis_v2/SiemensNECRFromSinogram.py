@@ -35,7 +35,7 @@ BATCH_SIZE=1024
 cps2Mcps = 0.000001
 Bq2kBq = 0.001
 
-from ROOT import TH2F, TCanvas, TProfile, TH1F, TLine
+from ROOT import TH2F, TCanvas, TProfile, TH1F
 
 def IsTwoHitEvent(event) :
     return len(event) == 2
