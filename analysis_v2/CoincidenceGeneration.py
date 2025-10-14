@@ -187,6 +187,10 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
                           EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0, ContinuousTimes=True,
                           Delay=0.0 ):
 
+  if Delay < 0.0:
+    print( "Delay must be positive, can't access photons before start of generation" )
+    return
+
   # Since each decay is calculated by delta-T, use the last in each channel as an offset
   timeOffsets = np.zeros( len( DecayRates ) )
 
@@ -277,7 +281,9 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
               delayedStartIndex = nextPhotonIndex
 
             # Check if past the end of the delayed window
-            if nextPhotonTime >= endWindowTime + Delay:
+            # Since the photons are sorted it's not strictly necessary to
+            #  check finishedDelayWindow, but why not be thorough
+            if nextPhotonTime >= endWindowTime + Delay and not finishedDelayWindow:
               delayedEndIndex = nextPhotonIndex
               finishedDelayWindow = True
 
