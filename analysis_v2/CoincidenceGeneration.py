@@ -282,7 +282,7 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
               finishedDelayWindow = True
 
         # Check if photon is within the window
-        if nextPhotonTime >= endWindowTime:
+        if nextPhotonTime >= endWindowTime and not finishedPromptWindow:
           endWindowIndex = nextPhotonIndex
           finishedPromptWindow = True
 
