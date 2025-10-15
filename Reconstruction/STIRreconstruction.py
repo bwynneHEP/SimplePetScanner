@@ -98,5 +98,6 @@ def CreateSinogram( InputFileName, OutputSinogramName, HSfileTemplate="STIR_scan
       line = line.replace( "UnlistingTemplates/STIR_scanner.hs", HSfileName )
       outputPARfile.write( line )
 
-  commandString = "/home/ben/Software/STIR/benInstall/bin/lm_to_projdata " + PARfileName
+  # Assumes STIR executables are in $PATH
+  commandString = "lm_to_projdata " + PARfileName
   os.system( commandString )
