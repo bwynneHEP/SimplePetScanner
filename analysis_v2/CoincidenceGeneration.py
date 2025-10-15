@@ -118,7 +118,7 @@ def TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, StartTimes=None ):
 
 # Take multiple decay channels and sample G4 photons for each channel
 # Then merge all photons into a single timeline for coincidence calulation
-def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0 ):
+def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0, Sort=True ):
 
   # Check inputs
   if len( TimeSeries ) != len( DecayData ):
@@ -161,7 +161,7 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
     photons = photons[ photons[:,DATASET_ENERGY] < EnergyMax ]
 
   #Sort the photons by time
-  if len( photons ) > 0:
+  if len( photons ) > 0 and Sort:
     photons = photons[ photons[:,DATASET_TIME].argsort() ]
 
   #end = time.time_ns()
@@ -200,7 +200,7 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
 
     # Use the previous methods to create the photon timeline
     timeSeries, batchTimePeriod = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
-    photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
+    photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, Sort=False )
 
     #batchCounter += 1
 
@@ -215,7 +215,9 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
     # Re-use previous batch photons that were leftover
     if leftoverPhotons is not None and len( leftoverPhotons ) > 0:
       photonStream = np.append( leftoverPhotons, photonStream, axis=0 )
-      photonStream = photonStream[ photonStream[:,DATASET_TIME].argsort() ] # might be some overlap, need to sort
+
+    # Sort photons after merging batches to avoid overlaps
+    photonStream = photonStream[ photonStream[:,DATASET_TIME].argsort() ]
 
     # Find the last photon time, to make sure we don't overrun
     finalPhotonTime = photonStream[ -1, DATASET_TIME ]
