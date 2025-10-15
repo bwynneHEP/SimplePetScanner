@@ -46,7 +46,7 @@ class NumpyDatasetReader:
       # Note it is a lot faster to shuffle this set of indices
       #  than to shuffle the actual data
       if RNG == None:
-        self.RNG.shuffle( self.unusedEvents )
+        self.inputDataset.RNG.shuffle( self.unusedEvents )
       else:
         RNG.shuffle( self.unusedEvents )
       self.sampleStartIndex = 0
