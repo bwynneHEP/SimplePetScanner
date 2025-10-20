@@ -184,7 +184,12 @@ def MergedPhotonStream( TimeSeries, DecayData, RNG, EnergyResolution=0.0, Energy
 #  coincidence window (or not, if there is an existing window)
 # TODO decide on time units - ns versus s (currently mixed)
 def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWindow, SimulationWindow, MultiWindow, \
-                          EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0, ContinuousTimes=True ):
+                          EnergyResolution=0.0, EnergyMin=0.0, EnergyMax=0.0, TimeResolution=0.0, ContinuousTimes=True,
+                          Delay=0.0 ):
+
+  if Delay < 0.0:
+    print( "Delay must be positive, can't access photons before start of generation" )
+    return
 
   # Since each decay is calculated by delta-T, use the last in each channel as an offset
   timeOffsets = np.zeros( len( DecayRates ) )
@@ -201,6 +206,11 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
     # Use the previous methods to create the photon timeline
     timeSeries, batchTimePeriod = TimeSeriesMultiChannel( BatchSize, DecayRates, RNG, timeOffsets )
     photonStream = MergedPhotonStream( timeSeries, DecayData, RNG, EnergyResolution, EnergyMin, EnergyMax, TimeResolution )
+
+    # Can't calculate delays if the delay time is longer than the batch
+    if Delay > batchTimePeriod * 1e9:
+      print( "Coincidence window delay (" + str(Delay) + ") is greater than expected batch length (" + str(batchTimePeriod) + ")" )
+      return
 
     #batchCounter += 1
 
@@ -238,6 +248,7 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
         #print( "Total batches: " + str( batchCounter ) )
         #print( "Yielded " + str( yieldCounter/batchCounter ) + " windows/batch" )
         return
+      # Need to add something for delayed window OR DO I!?!?
 
       # Check for needing a new batch
       # Original check was
@@ -245,24 +256,54 @@ def GenerateCoincidences( BatchSize, DecayRates, DecayData, RNG, CoincidenceWind
       # However this fails if the new batch of photons includes entries that
       # should have fallen into an older window (due to TOF effects)
       # Adding at least a full window's distance prevents this
-      if endWindowTime + CoincidenceWindow > finalPhotonTime:
+      if endWindowTime + CoincidenceWindow + Delay > finalPhotonTime:
         totalTime += ( batchTimePeriod * 1e9 )
         break
 
       # Create the window data by examining subsequent photons
       endWindowIndex = -1
+      delayedStartIndex = len( photonStream )
+      delayedEndIndex = -1
+      finishedDelayWindow = ( Delay == 0.0 ) # if there's no delay we're already finished
+      finishedPromptWindow = False
       for nextPhotonIndex in range( startWindowIndex + 1, len( photonStream ) ):
 
         nextPhotonTime = photonStream[ nextPhotonIndex, DATASET_TIME ]
 
+        # Check the delayed window
+        if Delay > 0.0:
+
+          # Check if past the start of the delayed window
+          if nextPhotonTime >= thisPhotonTime + Delay:
+
+            # Only update the window start index for the earliest photon
+            if nextPhotonIndex < delayedStartIndex:
+              delayedStartIndex = nextPhotonIndex
+
+            # Check if past the end of the delayed window
+            # Since the photons are sorted it's not strictly necessary to
+            #  check finishedDelayWindow, but why not be thorough
+            if nextPhotonTime >= endWindowTime + Delay and not finishedDelayWindow:
+              delayedEndIndex = nextPhotonIndex
+              finishedDelayWindow = True
+
         # Check if photon is within the window
-        if nextPhotonTime >= endWindowTime:
+        if nextPhotonTime >= endWindowTime and not finishedPromptWindow:
           endWindowIndex = nextPhotonIndex
+          finishedPromptWindow = True
+
+        if finishedPromptWindow and finishedDelayWindow:
           break
      
       #yieldCounter += 1
 
-      yield photonStream[ startWindowIndex : endWindowIndex ]
+      if Delay > 0.0:
+        yield (photonStream[ startWindowIndex : endWindowIndex ],
+              # For the delayed window, need to include the original photon too
+              np.concatenate(( photonStream[ startWindowIndex : startWindowIndex+1 ],
+                               photonStream[ delayedStartIndex : delayedEndIndex ] )))
+      else:
+        yield photonStream[ startWindowIndex : endWindowIndex ]
 
       # Choose whether to allow multiple concurrent windows
       if MultiWindow:
