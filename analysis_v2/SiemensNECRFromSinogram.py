@@ -35,11 +35,12 @@ BATCH_SIZE=1024
 cps2Mcps = 0.000001
 Bq2kBq = 0.001
 
-from ROOT import TH2F, TCanvas, TMath, TGraph, TProfile, TH1F
+from ROOT import TH2F, TCanvas, TProfile, TH1F
 
 def IsTwoHitEvent(event) :
     return len(event) == 2
 
+# Find the two bins closest to the windowEdge to be used in linear interpolation to find CL (CR)
 def FindNearestBins(projectionShifted, windowEdge) :
     binContainingVal = projectionShifted.FindBin(windowEdge)
     binContainingValLowEdge = projectionShifted.GetBinLowEdge(binContainingVal)
@@ -66,6 +67,7 @@ def ConstructLinearFunction(projectionShifted, windowEdge) :
     # print("The linear function formula is: y = ", slope, "*x + ", offset)
     return slope, offset
 
+# Get the interpolated CL (CR) calculated using linear function
 def GetCinter(slope, offset, windowEdge) :
 
     return slope*windowEdge + offset
@@ -151,7 +153,7 @@ def CountRatePerformanceData(detectorMaterial, nevents, Emin, Emax, detectorLeng
     return activityList, dataList, moduleIDs
 
 # apply the coincidence selection (central slices, minSectorDiff cut or deltaPhi) and fill in sinograms
-def SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile, sinogramRandoms, profileRandoms) :
+def SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile) :
     #only slices within the central 650 mm are used 
     zmin = -325 #mm
     zmax = 325 #mm
@@ -185,15 +187,8 @@ def SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile, sinogramRandoms,
     #fill in sinogram
     sinogram.Fill(sinogramS, sinogramTheta)
     profile.Fill(sinogramS, sinogramS)
-                        
-    #fill in sinogram with true random coincidences 
-    if pair[0][DATASET_EVENT] != pair[1][DATASET_EVENT]:
-        sinogramRandoms.Fill(sinogramS, sinogramTheta)
-        profileRandoms.Fill(sinogramS, sinogramS)
 
- 
-
-def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsectors, activity):
+def CountRatePerformance( activityList, dataList, coincidenceWindow, simulationWindow, multiWindow, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, ContinuousTimes, delay, PairMode, ModuleIDs, Nsectors, activity):
 
     nbinsx = 250
     nbinsy = 380
@@ -205,33 +200,47 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
     binEdges = array('d', binEdges)
 
     #original unshifted sinogram 
-    sinogram = TH2F("sinogram", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, -410, 410, nbinsy, 0, 3.14)
+    sinogram = TH2F("sinogram", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, xmin, xmax, nbinsy, 0, 3.14)
     #shifted sinogram needed for NECR calculation
     sinogramShifted = TH2F("sinogramShifted", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, xmin, xmax, nbinsy, 0, 3.14)
-    #sinogram with random coincidences only 
-    sinogramRandoms = TH2F("sinogramRandoms", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, xmin, xmax, nbinsy, 0, 3.14)
-    #profiles needed to set all pixels further than 12cm from the centre to zero
+    #profile needed to set all pixels further than 12cm from the centre to zero
     profile = TProfile("profile", "profile", len(binEdges)-1, binEdges)
-    profileRandoms = TProfile("profileRandoms", "profileRandoms", len(binEdges)-1, binEdges)
-    # deltaPhiHist = TH1F("deltaPhiHist", "; #Delta#Phi; Entries", 100, 0, np.pi)
-    # deltaPhiHistTrue = TH1F("deltaPhiHistTrue", "; #Delta#Phi; Entries", 100, 0, np.pi)
+    #sinogram and profile for delayed coincidences
+    sinogramDelayed = TH2F("sinogramDelayed", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, xmin, xmax, nbinsy, 0, 3.14)
+    profileDelayed = TProfile("profileDelayed", "profileDelayed", len(binEdges)-1, binEdges)
 
     if PairMode == "Exclusive":
-        for event in generator: 
-            if IsTwoHitEvent(event) == True:
-                SelectAndFill(event, moduleIDs, Nsectors, sinogram, profile, sinogramRandoms, profileRandoms)
+        for promptCoincidences, delayedCoincidences in cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, multiWindow, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, ContinuousTimes, delay ) :
+            #First, deal with prompts
+            if IsTwoHitEvent(promptCoincidences) == True:
+                SelectAndFill(promptCoincidences, ModuleIDs, Nsectors, sinogram, profile)
+            #Now the same for delayed
+            if IsTwoHitEvent(delayedCoincidences) == True:
+                SelectAndFill(delayedCoincidences, ModuleIDs, Nsectors, sinogramDelayed, profileDelayed)
 
     elif PairMode == "TakeAllGoods":
-        for event in generator:
-            if len(event) > 1:
-                firstPhoton = event[0]
-                for secondPhotonIndex in range( 1, len( event ) ):
-                    #pair = np.take_along_axis( event, np.array([ 0, secondPhotonIndex ]), axis=0 )
-                    pair = [ firstPhoton, event[secondPhotonIndex] ]
-                    
+
+        for promptCoincidences, delayedCoincidences in cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, multiWindow, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, ContinuousTimes, delay ) :
+
+            #First, deal with prompts
+            if len(promptCoincidences > 1):
+                firstPhoton = promptCoincidences[0]
+                for secondPhotonIndex in range( 1, len( promptCoincidences ) ):
+                    pair = [ firstPhoton, promptCoincidences[secondPhotonIndex] ]
+
                     # Now just repeat the "Exclusive" calculation
                     if IsTwoHitEvent(pair) == True:
-                        SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile, sinogramRandoms, profileRandoms)
+                        SelectAndFill(pair, ModuleIDs, Nsectors, sinogram, profile)
+
+            #Now do the same for delayed
+            if len(delayedCoincidences > 1):
+                firstPhoton = delayedCoincidences[0]
+                for secondPhotonIndex in range( 1, len( delayedCoincidences ) ):
+                    pair = [ firstPhoton, delayedCoincidences[secondPhotonIndex] ]
+
+                    # Now just repeat the "Exclusive" calculation
+                    if IsTwoHitEvent(pair) == True:
+                        SelectAndFill(pair, ModuleIDs, Nsectors, sinogramDelayed, profileDelayed)
 
     else :
         print("Unrecognised coincidence pairing mode: ", PairMode)
@@ -249,16 +258,22 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
         if profile.GetBinContent(b) > 120 or profile.GetBinContent(b) < -120 :
             for by in range(0, nbinsy+2):
                 sinogram.SetBinContent(b, by, 0.)
-    
 
     for b in range (0, nbinsx+2) :    
-        if profileRandoms.GetBinContent(b) > 120 or profileRandoms.GetBinContent(b) < -120 :
+        if profileDelayed.GetBinContent(b) > 120 or profileDelayed.GetBinContent(b) < -120 :
             for by in range(0, nbinsy+2):
-                sinogramRandoms.SetBinContent(b, by, 0.)
+                sinogramDelayed.SetBinContent(b, by, 0.)
 
     # canv.Clear()
-    # sinogramRandoms.Draw("colz")
-    # pdfName = "sinogram_randoms_" + str(activity) + ".pdf"
+    # sinogram.Draw("colz")
+    # print("Sinogram entries = ", sinogram.GetEntries())
+    # pdfName = "sinogram_unshifted_" + str(activity) + ".pdf"
+    # canv.SaveAs(pdfName)
+
+    # canv.Clear()
+    # sinogramDelayed.Draw("colz")
+    # print("Delayed sinogram entries = ", sinogramDelayed.GetEntries())
+    # pdfName = "sinogram_delayed_" + str(activity) + ".pdf"
     # canv.SaveAs(pdfName)
 
     #zero the overflow bin before shifting the sinogram
@@ -266,20 +281,21 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
         sinogram.SetBinContent(sinogram.GetNbinsX()+1, ybin, 0)
 
     #find the max pixel in radial distance for each projection angle bin and shift the sinogram 
-    for ybin in range(0, sinogram.GetNbinsY()+2):
+    #include under- and overflow bins in the shift
+    for ybin in range(0, sinogram.GetNbinsY()+2): 
         shift = sinogram.ProjectionX("proj", ybin, ybin+1, "").GetMaximumBin() - ((sinogram.GetNbinsX()+2)/2)
         shift = int(shift)
         # print("shift = ", shift)
         for xbin in range(0, sinogram.GetNbinsX()+2):
             sinogramShifted.SetBinContent(xbin, ybin, sinogram.GetBinContent(xbin+shift, ybin))
-            
+
     # canv.Clear()
     # sinogramShifted.Draw("colz")
     # pdfName = "sinogram_shifted_" + str(activity) + ".pdf"
     # canv.SaveAs(pdfName)
 
     # canv.Clear()
-    # projectionShifted = sinogramShifted.ProjectionX()
+    projectionShifted = sinogramShifted.ProjectionX("_px", 0, sinogramShifted.GetNbinsY()+1)
     # projectionShifted.Draw("hist")
     # pdfName = "projection_shifted_" + str(activity) + ".pdf"
     # canv.SaveAs(pdfName)
@@ -298,7 +314,13 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
     Rt = Ct/simulationWindowS
 
     #random counts and rate
-    Cr = sinogramRandoms.ProjectionX().Integral()
+    projectionDelayed = sinogramDelayed.ProjectionX("pd_px", 0, sinogramDelayed.GetNbinsY()+1)
+    Cr = projectionDelayed.Integral()
+    # canv.Clear()
+    # projectionDelayed.Draw("hist")
+    # pdfName = "projection_delayed_" + str(activity) + ".pdf"
+    # canv.SaveAs(pdfName)
+
     Rr = Cr/simulationWindowS
 
     #scatter counts and rate
@@ -312,6 +334,7 @@ def CountRatePerformance(generator, simulationWindow, PairMode, moduleIDs, Nsect
 
 def main() :
 
+    # Simulation settings
     detectorMaterial = "LSO"
     nevents = 1000000
     Emin = 435.0
@@ -322,6 +345,11 @@ def main() :
     coincidenceWindow = 4.7
     startingActivity = 1100E6 #Bq
     PairMode = "TakeAllGoods"
+    delay = 50.0 #ns
+    energyResolution = 0.0
+    timeResolution = 0.0
+    continuousTimes = True
+    multiWindow = False
 
     NECRs = []
     RTOTs = []
@@ -332,6 +360,7 @@ def main() :
     activities = []
     phantomRadius = 20.3 / 2.0
     phantomVolume = phantomRadius * phantomRadius * math.pi * phantomLength / 10.0
+
 
     activityList, dataList, moduleIDsTable = CountRatePerformanceData(detectorMaterial, nevents, Emin, Emax, detectorLength, phantomLength)
 
@@ -345,9 +374,7 @@ def main() :
         activity = pc.TracerActivityAtTime( startingActivity, tsec, "F18" )
         activityList[0] = activity
 
-        generator = cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, MultiWindow=False, EnergyResolution=0.0, EnergyMin=Emin, EnergyMax=Emax, TimeResolution=0.0 )
-
-        RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance( generator, simulationWindow, PairMode, moduleIDsTable, nsectors, activity)
+        RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance( activityList, dataList, coincidenceWindow, simulationWindow, multiWindow, energyResolution, Emin, Emax, timeResolution, continuousTimes, delay, PairMode, moduleIDsTable, nsectors, activity)
 
         NECRs.append(NECRAtTime*cps2Mcps)
         RTOTs.append(RTOTatTime*cps2Mcps)
