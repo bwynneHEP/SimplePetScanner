@@ -194,20 +194,16 @@ def CountRatePerformance( activityList, dataList, coincidenceWindow, simulationW
     nbinsy = 380
     xmin = -410.
     xmax = 410.
-    dist = (xmax - xmin)/nbinsx
-
-    binEdges = np.arange(xmin, xmax-dist, dist)
-    binEdges = array('d', binEdges)
 
     #original unshifted sinogram 
     sinogram = TH2F("sinogram", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, xmin, xmax, nbinsy, 0, 3.14)
     #shifted sinogram needed for NECR calculation
     sinogramShifted = TH2F("sinogramShifted", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, xmin, xmax, nbinsy, 0, 3.14)
     #profile needed to set all pixels further than 12cm from the centre to zero
-    profile = TProfile("profile", "profile", len(binEdges)-1, binEdges)
+    profile = TProfile("profile", "profile", nbinsx, xmin, xmax)
     #sinogram and profile for delayed coincidences
     sinogramDelayed = TH2F("sinogramDelayed", "; Projection displacement [mm]; Projection angle [rad]; Events", nbinsx, xmin, xmax, nbinsy, 0, 3.14)
-    profileDelayed = TProfile("profileDelayed", "profileDelayed", len(binEdges)-1, binEdges)
+    profileDelayed = TProfile("profileDelayed", "profileDelayed", nbinsx, xmin, xmax)
 
     if PairMode == "Exclusive":
         for promptCoincidences, delayedCoincidences in cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, multiWindow, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, ContinuousTimes, delay ) :
