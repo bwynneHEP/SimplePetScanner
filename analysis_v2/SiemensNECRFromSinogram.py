@@ -40,7 +40,7 @@ from ROOT import TH2F, TCanvas, TProfile, TH1F
 def IsTwoHitEvent(event) :
     return len(event) == 2
 
-# Find the two bins closest to the windowEdge to be used in linear interpolation to find CL (CR)
+# Identify the two bins closest to the windowEdge, needed in linear interpolation to find counts at the left edge (CL) or at the right edge (CR)
 def FindNearestBins(projectionShifted, windowEdge) :
     binContainingVal = projectionShifted.FindBin(windowEdge)
     binContainingValLowEdge = projectionShifted.GetBinLowEdge(binContainingVal)
