@@ -188,7 +188,7 @@ def SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile) :
     sinogram.Fill(sinogramS, sinogramTheta)
     profile.Fill(sinogramS, sinogramS)
 
-def CountRatePerformance( activityList, dataList, coincidenceWindow, simulationWindow, multiWindow, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, ContinuousTimes, delay, PairMode, ModuleIDs, Nsectors, activity):
+def CountRatePerformance(generator, simulationWindow, PairMode, ModuleIDs, Nsectors, activity):
 
     nbinsx = 250
     nbinsy = 380
@@ -206,7 +206,7 @@ def CountRatePerformance( activityList, dataList, coincidenceWindow, simulationW
     profileDelayed = TProfile("profileDelayed", "profileDelayed", nbinsx, xmin, xmax)
 
     if PairMode == "Exclusive":
-        for promptCoincidences, delayedCoincidences in cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, multiWindow, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, ContinuousTimes, delay ) :
+        for promptCoincidences, delayedCoincidences in generator :
             #First, deal with prompts
             if IsTwoHitEvent(promptCoincidences) == True:
                 SelectAndFill(promptCoincidences, ModuleIDs, Nsectors, sinogram, profile)
@@ -216,7 +216,7 @@ def CountRatePerformance( activityList, dataList, coincidenceWindow, simulationW
 
     elif PairMode == "TakeAllGoods":
 
-        for promptCoincidences, delayedCoincidences in cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, multiWindow, EnergyResolution, EnergyMin, EnergyMax, TimeResolution, ContinuousTimes, delay ) :
+        for promptCoincidences, delayedCoincidences in generator :
 
             #First, deal with prompts
             if len(promptCoincidences > 1):
@@ -370,7 +370,9 @@ def main() :
         activity = pc.TracerActivityAtTime( startingActivity, tsec, "F18" )
         activityList[0] = activity
 
-        RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance( activityList, dataList, coincidenceWindow, simulationWindow, multiWindow, energyResolution, Emin, Emax, timeResolution, continuousTimes, delay, PairMode, moduleIDsTable, nsectors, activity)
+        generator = cg.GenerateCoincidences( BATCH_SIZE, activityList, dataList, RNG, coincidenceWindow, simulationWindow, multiWindow, energyResolution, Emin, Emax, timeResolution, continuousTimes, delay ) 
+
+        RTOTatTime, RsrAtTime, RtAtTime, RrAtTime, RsAtTime, NECRAtTime = CountRatePerformance(generator, simulationWindow, PairMode, moduleIDsTable, nsectors, activity)
 
         NECRs.append(NECRAtTime*cps2Mcps)
         RTOTs.append(RTOTatTime*cps2Mcps)
