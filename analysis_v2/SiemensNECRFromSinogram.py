@@ -162,7 +162,7 @@ def SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile) :
     zmean = (z1 + z2)/2.
     if zmean > zmax or zmean < zmin :
         return
-                        
+    # Comment out the minSecDiff cut if using different granularity than crystal, use the deltaPhi cut below instead
     photon1GP = (pair[0][DATASET_R], pair[0][DATASET_PHI], pair[0][DATASET_Z])
     module1ID = moduleIDs[photon1GP]
     photon2GP = (pair[1][DATASET_R], pair[1][DATASET_PHI], pair[1][DATASET_Z])
@@ -180,7 +180,7 @@ def SelectAndFill(pair, moduleIDs, Nsectors, sinogram, profile) :
     # if sector information unavailable (running granularity != crystal) then do deltaPhi cut
     # deltaPhi = np.absolute(pair[1][DATASET_PHI] - pair[0][DATASET_PHI])
     # if deltaPhi < 0.66 :
-    #     continue
+    #     return
 
     sinogramS, sinogramTheta = CalcSinogramCoords(pair)
 
@@ -341,7 +341,7 @@ def main() :
     coincidenceWindow = 4.7
     startingActivity = 1100E6 #Bq
     PairMode = "TakeAllGoods"
-    delay = 50.0 #ns
+    delay = 70.0 #ns
     energyResolution = 0.0
     timeResolution = 0.0
     continuousTimes = True
@@ -364,6 +364,8 @@ def main() :
     #needed for minSectorDifference calculation
     sectorMax = max({sector[1] for sector in modIDs})
     nsectors = sectorMax + 1 
+    # If running on different granularity than crystal set nsectors to None (this info only available for crystals) and comment out the two lines above
+    # nsectors = None
 
     for t in range(0, 700, 20):
         tsec = 60*t
