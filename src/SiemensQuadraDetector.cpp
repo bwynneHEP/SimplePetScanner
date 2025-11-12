@@ -1,6 +1,7 @@
 #include "SiemensQuadraDetector.h"
 #include "SiemensQuadraParameterisationCrystals.h"
 #include "SiemensQuadraParameterisationBlocks.h"
+#include "SiemensQuadraParameterisationMiniBlocks.h"
 #include "SiemensQuadraParameterisationPanels.h"
 #include "CrystalMaterial.h"
 
@@ -45,7 +46,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   // (non-physical, allows use of parameterised detector crystals)
   G4double const envelopeInnerRadius = 38.0 * cm;
   G4double const envelopeOuterRadius = 50.0 * cm;
-  G4double const envelopeAxial = blockAxial * ( nRings + 1 );
+  G4double const envelopeAxial = blockAxial * ( nRings + 1 ); 
 
   G4double y = crystalWidth;
   G4double z = crystalWidth;
@@ -58,6 +59,11 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   {
     y = blockTrans;
     z = panelAxial;
+  }
+  else if (Mode == "MiniBlock")
+  {
+    y = miniBlockTrans;
+    z = miniBlockAxial;
   }
   DetectorData->crystalRadialSize = crystalLength * 2.0;
   DetectorData->crystalTransSize = y * 2.0;
@@ -115,6 +121,11 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   {
     G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationCrystals( 200*blocksPerRing*nRings, nullptr, DetectorData );
     return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, 200*blocksPerRing*nRings, detectorParam );
+  }
+  else if (Mode == "MiniBlock")
+  {
+    G4VPVParameterisation* detectorParam = new SiemensQuadraParameterisationMiniBlocks( blocksPerRing*8.*nRings, nullptr );
+    return new G4PVParameterised( Name, detectorLV, envelopeLV, kUndefined, blocksPerRing*8.*nRings, detectorParam );
   }
   else if ( Mode == "Block" )
   {
