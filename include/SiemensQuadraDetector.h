@@ -26,6 +26,9 @@ class SiemensQuadraDetector
     // 5x5 mini-blocks of crystals, 2x4 blocks
     static G4double constexpr blockAxial = crystalWidth * 10.0;
     static G4double constexpr blockTrans = crystalWidth * 20.0;
+
+    static G4double constexpr miniBlockAxial = crystalWidth * 5.0;
+    static G4double constexpr miniBlockTrans = crystalWidth * 5.0;
 };
 
 #endif
