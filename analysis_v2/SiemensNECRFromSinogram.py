@@ -341,7 +341,7 @@ def main() :
     coincidenceWindow = 4.7
     startingActivity = 1100E6 #Bq
     PairMode = "TakeAllGoods"
-    delay = 50.0 #ns
+    delay = 70.0 #ns
     energyResolution = 0.0
     timeResolution = 0.0
     continuousTimes = True
