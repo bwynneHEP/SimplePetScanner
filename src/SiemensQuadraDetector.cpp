@@ -62,6 +62,7 @@ G4VPhysicalVolume* SiemensQuadraDetector::Construct( std::string Name, G4Logical
   DetectorData->crystalRadialSize = crystalLength * 2.0;
   DetectorData->crystalTransSize = y * 2.0;
   DetectorData->crystalAxialSize = z * 2.0;
+  DetectorData->ringGap = z * 2.0;
 
   // ENVELOPE: Solid (cylinder)
   G4Tubs* envelopeS = new G4Tubs(
