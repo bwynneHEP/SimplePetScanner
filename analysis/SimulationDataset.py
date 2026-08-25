@@ -249,7 +249,7 @@ def GenerateSample( DetectorLengthMM, Detector, SourceLengthMM, Source, TotalDec
       return None
 
   # Allow for other detector granularity, but default to block
-  if not ( ("Block" in Detector) or ("Panel" in Detector) or ("Crystal" in Detector) ):
+  if not ( ("Block" in Detector) or ("Panel" in Detector) or ("Crystal" in Detector) or ("MiniBlock" in Detector)):
       Detector += "Block"
 
   # Phantom length affects the attenuating material, so include it even if source is detector
